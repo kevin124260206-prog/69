@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>施柏謙影音系統 - 頂級防禦一鍵播放版</title>
+    <title>施柏謙影音系統 - 頂級防禦 YT 劇院版</title>
     
     <style>
         /* =========================================
            基礎與全域樣式
            ========================================= */
-        body { margin: 0; background-color: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; user-select: none; overflow-x: hidden; }
+        body { margin: 0; background-color: #0f0f0f; color: #f1f1f1; font-family: Roboto, Arial, sans-serif; user-select: none; overflow-x: hidden; }
         
         /* =========================================
            1. 開場流體動畫
@@ -21,115 +21,123 @@
         }
         
         .morph-shape {
-            background: linear-gradient(90deg, #ff4500, #ff8c00, #4169e1);
+            background: linear-gradient(90deg, #ff0000, #ff4500, #b30000);
             background-size: 200% 200%;
             animation: 
-                morph-sequence 4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards,
+                morph-sequence 3.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards,
                 gradient-sweep 2s linear infinite;
         }
 
         @keyframes morph-sequence {
-            0% { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); transform: rotate(0deg); width: 80px; height: 80px; }
-            15% { transform: rotate(180deg); }
-            40% { clip-path: circle(50% at 50% 50%); transform: rotate(1440deg); width: 80px; height: 80px; }
+            0% { clip-path: polygon(20% 0%, 0% 100%, 100% 100%); transform: rotate(0deg); width: 80px; height: 80px; }
+            30% { clip-path: circle(50% at 50% 50%); transform: rotate(360deg); width: 80px; height: 80px; }
             60% { width: 80px; height: 80px; border-radius: 50%; }
-            100% { width: 400px; height: 4px; clip-path: none; border-radius: 2px; transform: rotate(1440deg); }
+            100% { width: 320px; height: 4px; clip-path: none; border-radius: 2px; transform: rotate(360deg); }
         }
 
         .brand-text {
-            position: absolute; margin-top: -30px; font-size: 32px; letter-spacing: 10px; font-weight: bold;
-            background: linear-gradient(90deg, #fff, #ccc); -webkit-background-clip: text; color: transparent;
-            opacity: 0; animation: text-appear 1s ease-out 3s forwards;
+            position: absolute; margin-top: -30px; font-size: 28px; letter-spacing: 8px; font-weight: bold;
+            background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; color: transparent;
+            opacity: 0; animation: text-appear 1s ease-out 2.5s forwards;
         }
 
         @keyframes text-appear { to { opacity: 1; margin-top: -45px; } }
         @keyframes gradient-sweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
         /* =========================================
-           2. 主畫面、搜尋列與影音網格
+           2. 主頁頂欄與搜尋列 (仿 YouTube 設計)
            ========================================= */
-        #app { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
-        
-        header { text-align: center; margin: 20px 0 30px 0; cursor: pointer; transition: opacity 0.3s; }
-        header:hover { opacity: 0.8; }
-        header h1 { font-size: 28px; letter-spacing: 2px; margin: 0; color: #fff; }
-        
-        .search-bar { text-align: center; margin-bottom: 25px; }
-        .search-bar input { padding: 15px 25px; width: 85%; max-width: 600px; border-radius: 50px; border: none; background: #222; color: #fff; font-size: 16px; outline: none; box-shadow: inset 0 2px 8px rgba(0,0,0,0.6); transition: box-shadow 0.3s; }
-        .search-bar input:focus { box-shadow: inset 0 2px 8px rgba(0,0,0,0.8), 0 0 15px rgba(255, 69, 0, 0.4); }
-        
-        #loading-status { text-align: center; color: #aaa; margin-bottom: 30px; font-size: 15px; letter-spacing: 1px; }
-
-        .video-container { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-
-        .video-card { background: #161616; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, background 0.2s; }
-        .video-card:hover { transform: translateY(-5px); background: #222; }
-        
-        .thumbnail-container { width: 100%; aspect-ratio: 16/9; background: #222; position: relative; overflow: hidden; }
-        .thumbnail { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .thumbnail-fallback { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            display: flex; align-items: center; justify-content: center; 
-            color: #555; font-size: 14px; background: #1a1a1a; 
+        .yt-nav {
+            position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between;
+            background: #0f0f0f; padding: 10px 20px; z-index: 1000; height: 56px; box-sizing: border-box;
         }
         
-        .video-info { padding: 15px; }
-        .video-title { margin: 0 0 8px 0; font-size: 18px; line-height: 1.4; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #fff; }
-        
+        .logo-area { display: flex; align-items: center; cursor: pointer; }
+        .logo-icon { width: 30px; height: 21px; background: red; border-radius: 5px; margin-right: 8px; position: relative; }
+        .logo-icon::after { content: ''; position: absolute; top: 5px; left: 11px; border-style: solid; border-width: 5px 0 5px 10px; border-color: transparent transparent transparent #fff; }
+        .logo-title { font-size: 20px; font-weight: bold; letter-spacing: -0.5px; color: #fff; }
+
+        .search-area { flex: 1; max-width: 600px; display: flex; margin: 0 40px; }
+        .search-area input { width: 100%; padding: 10px 18px; border-radius: 40px; border: 1px solid #303030; background: #121212; color: #fff; font-size: 15px; outline: none; }
+        .search-area input:focus { border: 1px solid #1c62b9; background: #0f0f0f; }
+
+        #loading-status { text-align: center; color: #aaa; padding: 40px; font-size: 15px; }
+
         /* =========================================
-           3. 專業級播放器模態框與裁剪防禦防護
+           3. 雙欄布局主容器 (YouTube 劇院效果關鍵)
            ========================================= */
-        #player-modal { 
-            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-            background: #000; z-index: 20000; flex-direction: column;
-        }
-
-        .top-bar {
-            height: 55px; background: #000; display: flex; align-items: center; justify-content: flex-start; padding: 0 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.8); z-index: 10;
+        .main-layout {
+            display: flex; flex-direction: column; width: 100%; margin: 0 auto; box-sizing: border-box;
         }
         
-        .btn { 
-            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 15px; 
-            color: white; background: #222; border: 1px solid #444; font-weight: bold;
-            display: flex; align-items: center; gap: 6px;
+        /* 寬螢幕時啟用 PC 版雙欄：左側播放/右側推薦 */
+        @media (min-width: 1000px) {
+            .main-layout { flex-direction: row; padding: 24px; gap: 24px; max-width: 1400px; }
+            .left-column { flex: 1; max-width: calc(100% - 424px); }
+            .right-column { width: 400px; flex-shrink: 0; }
         }
-        .btn:active { background: #444; }
-        .close-btn { background: #ff4500; border: none; }
-        .close-btn:active { background: #d63a00; }
 
-        /* 🚀 安全裁剪容器：隱藏 Google Drive 頂部工具列 */
+        /* 手機版排版：一律上下單欄垂直排列 */
+        @media (max-width: 999px) {
+            .left-column { width: 100%; }
+            .right-column { width: 100%; padding: 15px; box-sizing: border-box; }
+        }
+
+        /* =========================================
+           4. 左側播放器主舞台
+           ========================================= */
+        #player-area { display: none; margin-bottom: 20px; }
+
         .video-stage { 
-            flex: 1; 
-            position: relative; 
-            background: #000; 
-            overflow: hidden; 
+            width: 100%; aspect-ratio: 16/9; position: relative; background: #000; overflow: hidden; border-radius: 12px;
         }
         
-        /* iframe 往上頂 60px，把可能流出下載按鈕的頂欄移出可見視野 */
+        /* 向上移 60px 把 Google 原生下載頂欄切掉 */
         .video-stage iframe { 
-            position: absolute;
-            top: -60px; 
-            left: 0;
-            width: 100%; 
-            height: calc(100% + 60px); 
-            border: none; 
+            position: absolute; top: -60px; left: 0; width: 100%; height: calc(100% + 60px); border: none; 
         }
 
-        /* 🚀 隱形防禦頂罩（關鍵優化）：
-           我們只把「最頂端」可能被滑鼠懸停觸發下載按鈕的區塊鎖定。
-           下方其他區域設定 pointer-events: none 讓滑鼠穿透，達到直接點擊「一鍵播放」！ */
+        /* 頂部防禦遮蔽：阻隔游標滑過上方觸發 Google 選單 */
         .video-secure-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 80px; /* 覆蓋頂部 80 像素的隱形隔離帶，防止滑鼠游標移到上方觸發 Google UI */
-            z-index: 5;
-            background: rgba(0,0,0,0.01);
+            position: absolute; top: 0; left: 0; width: 100%; height: 80px; z-index: 5; background: rgba(0,0,0,0.01);
         }
 
-        footer { text-align: center; margin-top: 40px; padding: 20px; color: #555; font-size: 13px; }
+        /* 仿 YouTube 的影片標題與資訊區 */
+        .playing-info { padding: 16px 0; border-bottom: 1px solid #303030; }
+        .playing-title { font-size: 20px; font-weight: bold; margin: 0 0 8px 0; color: #f1f1f1; line-height: 1.4; }
+        .playing-meta { font-size: 14px; color: #aaa; }
+
+        /* =========================================
+           5. 影音網格 / 右側推薦清單 (仿 YT Card Layout)
+           ========================================= */
+        .grid-header { font-size: 20px; font-weight: bold; margin: 0 0 16px 0; display: flex; align-items: center; justify-content: space-between; }
+        .grid-header span { font-size: 14px; color: #ff4500; font-weight: normal; }
+
+        /* 當播放器未開啟時，使用滿版網格樣式 */
+        .video-grid { display: grid; gap: 20px 16px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+
+        /* 當播放器啟用後，右側推薦欄改為精緻的 YT 直式小卡 */
+        .right-column .video-grid { display: flex; flex-direction: column; gap: 12px; }
+
+        /* 影片卡片本體 */
+        .video-card { background: transparent; cursor: pointer; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; transition: transform 0.15s; }
+        .video-card:hover { transform: scale(1.02); }
+
+        /* 播放時右側推薦卡片的緊湊排版 (YT 側欄效果) */
+        .right-column .video-card { flex-direction: row; gap: 8px; }
+
+        .thumbnail-container { width: 100%; aspect-ratio: 16/9; background: #202020; position: relative; border-radius: 8px; overflow: hidden; }
+        .right-column .video-card .thumbnail-container { width: 160px; flex-shrink: 0; }
+
+        .thumbnail { width: 100%; height: 100%; object-fit: cover; display: block; }
+        
+        .video-info { padding: 10px 0; }
+        .right-column .video-card .video-info { padding: 0; flex: 1; }
+
+        .video-title { margin: 0 0 6px 0; font-size: 15px; line-height: 1.3; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #fff; }
+        .video-date { margin: 0; font-size: 13px; color: #aaa; }
+
+        footer { text-align: center; padding: 40px 20px; color: #717171; font-size: 12px; border-top: 1px solid #202020; margin-top: 50px; }
         
         /* 隱藏覆蓋層，用於防禦模式 */
         #defense-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; color: red; z-index: 999999; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; }
@@ -146,50 +154,61 @@
         <div class="morph-shape"></div>
     </div>
 
-    <!-- 網站主介面 -->
-    <div id="app">
-        <header onclick="resetView()" title="返回首頁">
-            <h1>施柏謙影音系統</h1>
-        </header>
+    <!-- 頂部防禦導覽欄 -->
+    <nav class="yt-nav">
+        <div class="logo-area" onclick="resetView()">
+            <div class="logo-icon"></div>
+            <div class="logo-title">施柏謙影音</div>
+        </div>
+        <div class="search-area">
+            <input type="text" id="searchInput" placeholder="搜尋影片..." onkeyup="filterVideos()">
+        </div>
+        <div style="width: 30px;"></div> <!-- 排版平衡佔位 -->
+    </nav>
 
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="搜尋影片名稱..." onkeyup="filterVideos()">
+    <!-- 主區塊：YouTube 流動排版容器 -->
+    <main class="main-layout" id="mainContainer">
+        
+        <!-- 左側：放主播放器 (一開始隱藏，點擊影片後才顯現) -->
+        <div class="left-column">
+            <div id="player-area">
+                <div class="video-stage" id="stage-container">
+                    <!-- 動態載入安全穿透 iframe -->
+                </div>
+                <div class="playing-info">
+                    <h2 class="playing-title" id="currentVideoTitle">影片載入中...</h2>
+                    <div class="playing-meta" id="currentVideoDate"></div>
+                </div>
+            </div>
         </div>
-        
-        <div id="loading-status">正在安全載入影音資料，請稍候...</div>
-        <div class="video-container" id="videoGrid"></div>
-        
-        <footer><p id="copyright"></p></footer>
-    </div>
 
-    <!-- 專業版 App 播放器 -->
-    <div id="player-modal">
-        <div class="top-bar">
-            <button class="btn close-btn" onclick="closePlayer()">✕ 關閉</button>
+        <!-- 右側 / 滿版：存放影片網格清單 -->
+        <div class="right-column" id="listColumn">
+            <h3 class="grid-header" id="listHeader">所有影片 <span>(請點選影片直接播放)</span></h3>
+            <div id="loading-status">安全數據連線中，請稍候...</div>
+            <div class="video-grid" id="videoGrid"></div>
         </div>
-        <div class="video-stage" id="stage-container">
-            <!-- 動態插入一鍵穿透播放系統 -->
-        </div>
-    </div>
+
+    </main>
+
+    <footer>
+        <p id="copyright"></p>
+    </footer>
 
     <script>
         // ==========================================
-        // ⚠️ 必填區：替換為你的 GAS URL
+        // ⚠️ 核心網址配置
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyIJd-CE6i_4pOL03QKTfIkMkJgEVJOnQrjVunW6HV1fgMUkjUL5xLf-7b8ZZFp-l45/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx6TVaiXc0DV27mkHX5ReK8R9T0ocY5gxeTuKiOkls7BelgnSjG9E_d6GnfnnlXmvAo/exec';
         
         let allVideosData = [];
         let isDataLoaded = false;
         let isAnimationFinished = false;
 
         // ==========================================
-        // 🛡️ 前端安全防禦機制模組
+        // 🛡️ 軍規級前端防禦模組
         // ==========================================
-        
-        // 1. 禁用右鍵選單
         document.addEventListener('contextmenu', e => e.preventDefault());
-        
-        // 2. 禁用開發者工具快捷鍵
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || 
                (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
@@ -197,33 +216,29 @@
                 e.preventDefault();
                 return false;
             }
-            if (e.key === 'Escape') closePlayer();
         });
 
-        // 3. 陷阱：干擾開發者工具 (Debugger Trap)
         setInterval(() => {
             const before = new Date().getTime();
             (function() { debugger; })();
             const after = new Date().getTime();
             if (after - before > 100) {
                 document.getElementById('defense-overlay').style.display = 'flex';
-                document.getElementById('app').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'none';
             }
         }, 1000);
 
         // ==========================================
-        // 核心業務邏輯
+        // 初始化與數據處理
         // ==========================================
-
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 核心軍規防護中`;
 
-            // 動態開場動畫判定
             setTimeout(() => {
                 isAnimationFinished = true;
                 checkAndHideSplash();
-            }, 3000);
+            }, 2500);
 
             fetchVideos();
         };
@@ -232,10 +247,7 @@
             if (isDataLoaded && isAnimationFinished) {
                 const splash = document.getElementById('splash');
                 splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                    document.getElementById('app').style.display = 'block';
-                }, 500);
+                setTimeout(() => splash.style.display = 'none', 500);
             }
         }
 
@@ -243,29 +255,25 @@
             try {
                 const res = await fetch(GAS_URL);
                 const data = await res.json();
-                
-                if (data.error) {
-                    document.getElementById('loading-status').innerText = data.error;
-                    return;
-                }
-
                 if (data && data.length > 0) {
                     allVideosData = data;
                     document.getElementById('loading-status').style.display = 'none'; 
-                    filterVideos();
+                    renderGrid();
                 } else {
-                    document.getElementById('loading-status').innerText = '無可用影音資料。';
+                    document.getElementById('loading-status').innerText = '暫無可用影片數據';
                 }
             } catch(err) { 
-                console.error("安全通道驗證失敗");
-                document.getElementById('loading-status').innerText = '載入失敗，請確認安全連線狀態。'; 
+                document.getElementById('loading-status').innerText = '安全連線逾時，請重試'; 
             } finally {
                 isDataLoaded = true;
                 checkAndHideSplash();
             }
         }
 
-        function filterVideos() {
+        // ==========================================
+        // 渲染功能 (支援雙態排版)
+        // ==========================================
+        function renderGrid() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const grid = document.getElementById('videoGrid');
             grid.innerHTML = ''; 
@@ -273,87 +281,96 @@
             const filtered = allVideosData.filter(v => v.name.toLowerCase().includes(keyword));
 
             if (filtered.length === 0) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #777; padding: 40px;">無符合條件的內容</div>';
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#777; padding:40px;">無匹配的影片項目</div>';
                 return;
             }
 
             filtered.forEach(video => {
                 const card = document.createElement('div');
                 card.className = 'video-card';
-                card.onclick = () => openPlayer(video.secureToken); 
+                card.onclick = () => playVideo(video.secureToken, video.name, video.date); 
                 
                 const thumbSrc = video.thumbnail ? video.thumbnail : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
                 card.innerHTML = `
                     <div class="thumbnail-container">
-                        <img src="${thumbSrc}" class="thumbnail" alt="預覽圖" loading="lazy" onerror="handleImageError(this)">
+                        <img src="${thumbSrc}" class="thumbnail" alt="預覽圖" loading="lazy">
                     </div>
                     <div class="video-info">
-                        <h3 class="video-title">${video.name}</h3>
-                        <p style="margin:0; font-size: 13px; color: #888;">${video.date}</p>
+                        <h4 class="video-title">${video.name}</h4>
+                        <p class="video-date">${video.date}</p>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function handleImageError(img) {
-            const container = img.parentElement;
-            img.style.display = 'none';
-            const fallback = document.createElement('div');
-            fallback.className = 'thumbnail-fallback';
-            fallback.innerText = '安全載入中';
-            container.appendChild(fallback);
+        function filterVideos() {
+            renderGrid();
         }
 
-        // 🔓 反向解密還原 Google Drive ID
+        // 🔓 字符位移解密
         function decodeSecureToken(token) {
             let chars = token.split('');
             for (let i = 0; i < chars.length; i++) {
                 chars[i] = String.fromCharCode(chars[i].charCodeAt(0) - 1);
             }
-            let b64 = chars.join('');
-            return decodeURIComponent(escape(atob(b64)));
+            return decodeURIComponent(escape(atob(chars.join(''))));
         }
 
-        function openPlayer(token) {
+        // ==========================================
+        // 🚀 YT 核心無縫播放切換模組
+        // ==========================================
+        function playVideo(token, title, date) {
+            const playerArea = document.getElementById('player-area');
             const stageContainer = document.getElementById('stage-container');
-            const modal = document.getElementById('player-modal');
-            
+            const currentTitle = document.getElementById('currentVideoTitle');
+            const currentDate = document.getElementById('currentVideoDate');
+            const listHeader = document.getElementById('listHeader');
+
             try {
                 const fileId = decodeSecureToken(token);
                 
-                // 渲染一鍵穿透系統：移除遮蓋中央的遮罩，改為隱形頂欄
+                // 1. 動態植入 iframe (保留頂部 80px 隱形隔離)
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
-                        id="securePlayerFrame"
                         src="https://drive.google.com/file/d/${fileId}/preview" 
                         allow="autoplay; fullscreen"
                         allowfullscreen="true">
                     </iframe>`;
-                
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
+
+                // 2. 更新標題和日期
+                currentTitle.innerText = title;
+                currentDate.innerText = `發布日期：${date}`;
+
+                // 3. 展開左側劇院播放版面
+                playerArea.style.display = 'block';
+
+                // 4. 右側推薦清單標題改寫為：下一集播放 / 推薦影片
+                listHeader.innerHTML = '推薦影片 <span>(點擊切換播放)</span>';
+
+                // 5. 重新適應高度，並平滑滾動到網頁最上方
+                renderGrid();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
             } catch (e) {
-                alert("存取拒絕：金鑰驗證失敗。");
+                alert("存取拒絕：金鑰解密發生嚴重異常。");
             }
         }
 
-        function closePlayer() {
-            const modal = document.getElementById('player-modal');
-            const stageContainer = document.getElementById('stage-container');
-            
-            modal.style.display = 'none';
-            stageContainer.innerHTML = ''; 
-            document.body.style.overflow = 'auto'; 
-        }
-
+        // 返回首頁 (關閉播放)
         function resetView() {
-            closePlayer();
-            const searchInput = document.getElementById('searchInput');
-            searchInput.value = '';
-            filterVideos();
+            const playerArea = document.getElementById('player-area');
+            const stageContainer = document.getElementById('stage-container');
+            const listHeader = document.getElementById('listHeader');
+            
+            playerArea.style.display = 'none';
+            stageContainer.innerHTML = ''; 
+            listHeader.innerHTML = '所有影片 <span>(請點選影片直接播放)</span>';
+            
+            document.getElementById('searchInput').value = '';
+            renderGrid();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
