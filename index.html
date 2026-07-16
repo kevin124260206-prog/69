@@ -66,7 +66,7 @@
         .logo-underline { width: 100%; height: 3px; background: linear-gradient(90deg, #ff4500, #ff8c00, #ff0000); border-radius: 2px; }
 
         /* =========================================
-           3. 經典置中首頁佈局
+           3. 置中首頁佈局
            ========================================= */
         #app { padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
         header { text-align: center; margin: 40px 0 20px 0; }
@@ -83,10 +83,11 @@
         #loading-status { text-align: center; color: #888; margin-bottom: 30px; font-size: 15px; }
 
         /* =========================================
-           4. 影片清單網格與影音版面
+           4. 影片清單網格與劇院版面排版
            ========================================= */
         .main-layout { display: flex; flex-direction: column; gap: 30px; }
 
+        /* 寬螢幕劇院模式：左邊影片，右邊推薦 */
         @media (min-width: 1000px) {
             .main-layout.playing { flex-direction: row; align-items: flex-start; }
             .main-layout.playing .left-column { flex: 1; max-width: calc(100% - 380px); }
@@ -112,7 +113,7 @@
         .video-date { margin: 0; font-size: 12px; color: #777; }
         
         /* =========================================
-           5. 劇院播放器區塊 (🛠️ 原生 HTML5 支援)
+           5. 劇院播放器區塊
            ========================================= */
         #player-area { display: none; margin-bottom: 20px; width: 100%; }
 
@@ -121,8 +122,9 @@
             overflow: hidden; border-radius: 12px; border: 1px solid #222;
         }
         
-        /* 🛠️ 改用原生 video 控制，使其佔滿容器，解鎖 100% 全螢幕 */
-        .video-stage video { width: 100%; height: 100%; object-fit: contain; outline: none; }
+        .video-stage iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        
+        /* 透明防護：pointer-events: none 允許滑鼠點擊穿透，這樣才能正常使用全螢幕跟進度條 */
         .video-secure-bar { position: absolute; top: 0; left: 0; width: 100%; height: 50px; z-index: 5; background: rgba(0,0,0,0); pointer-events: none; }
 
         .playing-info { padding: 16px 4px; border-bottom: 1px solid #222; }
@@ -192,7 +194,7 @@
         let isAnimationFinished = false;
 
         // ==========================================
-        // 🛡️ 軍規前端防禦機制
+        // 🛡️ 軍規級安全防禦
         // ==========================================
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
@@ -296,15 +298,27 @@
         }
 
         // ==========================================
-        // 🔐 解密專用模組
+        // 🔐 您的專屬「雙重混淆」前端解密演算法
         // ==========================================
-        function decryptToken(encryptedToken) {
-            // 如果您有用 Base64 加密，請改為：return atob(encryptedToken);
-            return encryptedToken; 
+        function decryptToken(secureToken) {
+            try {
+                // 1. 將每個字元的 ASCII 碼向前移回 1 個位元 (-1)
+                let chars = secureToken.split('');
+                for (let i = 0; i < chars.length; i++) {
+                    chars[i] = String.fromCharCode(chars[i].charCodeAt(0) - 1);
+                }
+                let base64Str = chars.join('');
+                
+                // 2. 進行 Base64 解碼得到真實的 File ID
+                return atob(base64Str);
+            } catch (err) {
+                console.error("解密失敗，請檢查 Token 格式是否正確", err);
+                return null;
+            }
         }
 
         // ==========================================
-        // 🚀 播放影片 (核心修正：直接使用原生影片串流，徹底解鎖全螢幕)
+        // 🚀 播放影片 (使用不受限網域 + 補上所有全螢幕相容授權屬性)
         // ==========================================
         function playVideo(token, title, date) {
             const mainLayout = document.getElementById('mainLayout');
@@ -315,21 +329,25 @@
             const listHeader = document.getElementById('listHeader');
 
             try {
+                // 🔑 使用雙重混淆解密還原真正的 File ID
                 const fileId = decryptToken(token); 
+                if (!fileId) {
+                    alert("解密金鑰毀損或格式錯誤！");
+                    return;
+                }
+
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 🛠️ 關鍵變更：將 iframe 改為原生 HTML5 <video> 播放器，並串接 Google Drive 影片直接下載點
+                // 🌟 改用 drive.google.com 的 preview 嵌入，並加上完整全螢幕相容權限
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
-                    <video 
-                        controls 
-                        autoplay
-                        controlsList="nodownload" 
-                        disablePictureInPicture
-                        playsinline>
-                        <source src="https://drive.google.com/uc?id=${fileId}&export=download" type="video/mp4">
-                        您的瀏覽器不支援 HTML5 播放器。
-                    </video>`;
+                    <iframe 
+                        src="https://drive.google.com/file/d/${fileId}/preview" 
+                        allow="autoplay; fullscreen; picture-in-picture" 
+                        allowfullscreen="true"
+                        webkitallowfullscreen="true"
+                        mozallowfullscreen="true">
+                    </iframe>`;
 
                 currentTitle.innerText = title;
                 currentDate.innerText = `發布日期：${date}`;
