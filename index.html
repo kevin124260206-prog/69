@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 
     <style>
-        /* 基礎防護與樣式 */
-        body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #121212; color: #fff; user-select: none; overflow-x: hidden; }
+        /* 基礎防護與劇院級樣式 */
+        body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #121212; color: #fff; user-select: none; overflow-x: hidden; font-size: 18px; }
         
         /* =========================================
            1. 施柏謙影音：流體啟動系統 (5秒開場)
@@ -20,87 +20,91 @@
             z-index: 9999; transition: opacity 0.5s ease-out;
         }
         
-        /* 幾何變形核心 */
+        /* 幾何變形核心 (三角形慢到快 -> 圓形 -> 拉伸) */
         .morph-shape {
             background: linear-gradient(90deg, #ff4500, #ff8c00, #4169e1);
             background-size: 200% 200%;
             animation: 
-                morph-logic 4s cubic-bezier(0.4, 0, 0.2, 1) forwards,
+                morph-sequence 5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards,
                 gradient-sweep 2s linear infinite; /* 反光滾動感 */
         }
 
-        @keyframes morph-logic {
-            /* 0-1.5s: 三角形高速旋轉 */
-            0% { width: 80px; height: 80px; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); transform: rotate(0deg); }
-            30% { width: 80px; height: 80px; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); transform: rotate(1080deg); }
+        @keyframes morph-sequence {
+            /* 0-2秒：慢速起步，隨後暴衝高速旋轉並轉為圓形 */
+            0% { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); transform: rotate(0deg); width: 80px; height: 80px; }
+            15% { transform: rotate(180deg); }
+            40% { clip-path: circle(50% at 50% 50%); transform: rotate(1440deg); width: 80px; height: 80px; }
             
-            /* 1.5-2.5s: 轉變成圓形並凝聚 */
-            35% { width: 80px; height: 80px; clip-path: circle(50% at 50% 50%); transform: rotate(1080deg); }
-            50% { width: 80px; height: 80px; clip-path: circle(50% at 50% 50%); transform: rotate(1080deg); }
+            /* 2-3.5秒：穩固圓形準備變形 */
+            60% { width: 80px; height: 80px; border-radius: 50%; }
             
-            /* 2.5-4s: 拉長成線條 */
-            100% { width: 350px; height: 4px; clip-path: none; border-radius: 2px; transform: rotate(1080deg); }
+            /* 3.5-5秒：瞬間拉伸成線條 */
+            100% { width: 400px; height: 4px; clip-path: none; border-radius: 2px; transform: rotate(1440deg); }
         }
 
         /* 品牌字體浮現 */
         .brand-text {
-            position: absolute; margin-top: -30px; font-size: 28px; letter-spacing: 8px; font-weight: bold;
-            background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; color: transparent;
-            opacity: 0; animation: text-appear 1s ease-out 3.5s forwards;
+            position: absolute; margin-top: -30px; font-size: 32px; letter-spacing: 10px; font-weight: bold;
+            background: linear-gradient(90deg, #fff, #ccc); -webkit-background-clip: text; color: transparent;
+            opacity: 0; animation: text-appear 1s ease-out 4s forwards;
         }
 
-        @keyframes text-appear { to { opacity: 1; margin-top: -40px; } }
+        @keyframes text-appear { to { opacity: 1; margin-top: -45px; } }
         @keyframes gradient-sweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
         /* =========================================
-           2. 系統主畫面與網格佈局
+           2. 系統主畫面與劇院級網格佈局
            ========================================= */
-        #app { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
+        #app { display: none; padding: 30px; max-width: 1600px; margin: 0 auto; }
         header { text-align: center; margin: 20px 0 40px 0; }
-        .search-bar { text-align: center; margin-bottom: 40px; }
-        .search-bar input { padding: 15px 25px; width: 80%; max-width: 600px; border-radius: 50px; border: none; background: #222; color: #fff; font-size: 16px; outline: none; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        header h2 { font-size: 36px; letter-spacing: 2px; }
+        .search-bar { text-align: center; margin-bottom: 50px; }
+        .search-bar input { padding: 18px 30px; width: 80%; max-width: 700px; border-radius: 50px; border: none; background: #222; color: #fff; font-size: 18px; outline: none; box-shadow: inset 0 2px 8px rgba(0,0,0,0.6); }
         
-        .video-container { display: grid; gap: 25px; grid-template-columns: 1fr; }
-        @media (min-width: 1024px) { .video-container { grid-template-columns: repeat(5, 1fr); } }
+        .video-container { display: grid; gap: 40px; grid-template-columns: 1fr; }
+        /* 電腦版改為 3 欄大圖模式 */
+        @media (min-width: 1024px) { .video-container { grid-template-columns: repeat(3, 1fr); } }
 
-        .video-card { background: #1a1a1a; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; position: relative; }
-        .video-card:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        .thumbnail { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #000; }
-        .video-info { padding: 15px; }
-        .video-title { margin: 0 0 10px 0; font-size: 15px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #eee; }
+        .video-card { background: #1a1a1a; border-radius: 16px; overflow: hidden; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; position: relative; }
+        .video-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.6); }
+        .thumbnail { width: 100%; height: 280px; object-fit: cover; background: #000; display: block; }
+        
+        .video-info { padding: 20px; }
+        .video-title { margin: 0 0 12px 0; font-size: 24px; line-height: 1.5; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #fff; }
         
         /* 影片卡片上的自訂播放按鈕 (彩色流動光暈) */
         .card-play-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 50px; height: 50px; border-radius: 50%;
+            width: 60px; height: 60px; border-radius: 50%;
             background: rgba(255, 255, 255, 0.9);
             display: flex; justify-content: center; align-items: center;
             opacity: 0; transition: all 0.3s ease;
         }
         .card-play-btn::after {
-            content: ''; width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 15px solid #111; margin-left: 5px;
+            content: ''; width: 0; height: 0; border-top: 12px solid transparent; border-bottom: 12px solid transparent; border-left: 18px solid #111; margin-left: 5px;
         }
         .video-card:hover .card-play-btn {
             opacity: 1;
             background: linear-gradient(90deg, #ff4500, #ff8c00, #4169e1);
             background-size: 200% 200%;
-            animation: gradient-sweep 1.5s linear infinite; /* 滑過時產生滾動色彩 */
-            box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+            animation: gradient-sweep 1.5s linear infinite; 
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.8);
+            transform: translate(-50%, -50%) scale(1.1);
         }
 
         /* =========================================
            3. 播放器模態框與防盜浮水印
            ========================================= */
         #player-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.98); z-index: 10000; justify-content: center; align-items: center; }
-        .player-wrapper { position: relative; width: 95%; max-width: 1100px; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .close-btn { position: absolute; top: -40px; right: 0; color: #fff; font-size: 35px; cursor: pointer; z-index: 101; }
+        .player-wrapper { position: relative; width: 95%; max-width: 1200px; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 40px rgba(0,0,0,0.9); }
+        .close-btn { position: absolute; top: -45px; right: 0; color: #fff; font-size: 40px; cursor: pointer; z-index: 101; font-weight: bold; }
         
         /* 角落跟隨浮水印 */
-        .watermark { position: absolute; bottom: 60px; right: 20px; color: rgba(255,255,255,0.4); font-size: 16px; font-weight: bold; letter-spacing: 2px; pointer-events: none; z-index: 99; text-shadow: 1px 1px 2px rgba(0,0,0,0.9); }
+        .watermark { position: absolute; bottom: 70px; right: 25px; color: rgba(255,255,255,0.3); font-size: 20px; font-weight: bold; letter-spacing: 3px; pointer-events: none; z-index: 99; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); }
         
         /* 覆寫 Plyr 播放器主題色為品牌橘紅 */
         :root { --plyr-color-main: #ff4500; }
-        footer { text-align: center; margin-top: 50px; padding: 20px; color: #666; font-size: 13px; }
+        footer { text-align: center; margin-top: 60px; padding: 20px; color: #777; font-size: 15px; }
     </style>
 </head>
 <body>
@@ -131,15 +135,15 @@
 
     <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
     <script>
-        // ★★★ 請替換為你的 GAS 網址 ★★★
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbykALIrxA3whXXm_2nftd_Y7kUAgJDOSoUCxsAvlRSqClCyzUj56x6KLSYMqYEK7Rf-/exec';
+        // ★★★ 請替換為你建立「新版本」後的 GAS 網址 ★★★
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxZecjxCeE4sUKf9lqJwDKG5Kupn3fGpIgLjZwIClGb3RHA3WndJgE6gqq5jh-vfKRH/exec';
         
         let allVideosData = [];
         let playerInstance;
 
         window.onload = () => {
-            // 動態年份版權 (會自動抓取 2026 年)
-            document.getElementById('copyright').innerText = `© 2025 - ${new Date().getFullYear()} 施柏謙 版權所有`;
+            const currentYear = new Date().getFullYear();
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有`;
 
             // 5秒開場動畫邏輯
             setTimeout(() => {
@@ -149,41 +153,40 @@
                     splash.style.display = 'none';
                     document.getElementById('app').style.display = 'block';
                 }, 500);
-            }, 5000); // 確保開場停留完整的 5 秒
+            }, 5000);
 
             // 初始化 Plyr 播放器
             playerInstance = new Plyr('#plyr-player', {
                 controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-                keyboard: { focused: false, global: false } // 停用快捷鍵防盜
+                keyboard: { focused: false, global: false } 
             });
 
-            // 啟動資料擷取與 5 秒輪詢機制
+            // 啟動資料擷取與 5 秒輪詢
             fetchVideos();
             setInterval(fetchVideos, 5000);
         };
 
-        // 防護設定：禁用右鍵與開發者工具快捷鍵
+        // 防護設定：禁用右鍵與快捷鍵
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || (e.ctrlKey && ['s', 'u', 'c'].includes(e.key.toLowerCase()))) e.preventDefault();
         });
 
-        // 拉取雲端資料
+        // 讀取 API
         async function fetchVideos() {
             if(!GAS_URL.startsWith('http')) return; 
             try {
                 const res = await fetch(GAS_URL);
                 const data = await res.json();
                 
-                // 若雲端有更新才重新渲染
                 if(JSON.stringify(data) !== JSON.stringify(allVideosData)) {
                     allVideosData = data;
                     filterVideos();
                 }
-            } catch(err) { console.log("等待同步中..."); }
+            } catch(err) { console.log("同步檢查中..."); }
         }
 
-        // 搜尋與渲染卡片
+        // 搜尋與渲染
         function filterVideos() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const grid = document.getElementById('videoGrid');
@@ -201,20 +204,20 @@
                 card.innerHTML = `
                     <div style="position: relative;">
                         <img src="${thumbSrc}" class="thumbnail" alt="預覽圖" loading="lazy">
-                        <div class="card-play-btn"></div> </div>
+                        <div class="card-play-btn"></div>
+                    </div>
                     <div class="video-info">
                         <h3 class="video-title">${video.name}</h3>
-                        <p style="margin:0; font-size: 12px; color: #888;">${video.date}</p>
+                        <p style="margin:0; font-size: 14px; color: #999;">${video.date}</p>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // 啟動自訂播放器 (將 Google Drive 檔案強制轉為串流直連)
+        // 呼叫 Plyr 播放
         function openPlayer(fileId) {
             const modal = document.getElementById('player-modal');
-            // 使用 Google Drive 直連下載參數，餵給自訂播放器
             const streamUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
             
             playerInstance.source = {
@@ -223,13 +226,12 @@
             };
             
             modal.style.display = 'flex';
-            playerInstance.play(); // 自動播放
+            playerInstance.play();
         }
 
-        // 關閉播放器
         function closePlayer() {
             const modal = document.getElementById('player-modal');
-            playerInstance.stop(); // 停止播放
+            playerInstance.stop(); 
             modal.style.display = 'none';
         }
     </script>
