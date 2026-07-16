@@ -27,7 +27,6 @@
             z-index: 99999; transition: opacity 0.6s ease-out;
         }
         
-        /* 動畫變形主體 */
         .morph-shape {
             background: linear-gradient(90deg, #ff4500, #ff8c00, #ff0000);
             background-size: 200% 200%;
@@ -113,7 +112,7 @@
         .video-date { margin: 0; font-size: 12px; color: #777; }
         
         /* =========================================
-           5. 劇院播放器區塊
+           5. 劇院播放器區塊 (🛠️ 原生 HTML5 支援)
            ========================================= */
         #player-area { display: none; margin-bottom: 20px; width: 100%; }
 
@@ -122,8 +121,8 @@
             overflow: hidden; border-radius: 12px; border: 1px solid #222;
         }
         
-        /* 🛠️ CSS 修正：讓 Google 原生控制列完美呈現，並防止遮罩擋住點擊 */
-        .video-stage iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        /* 🛠️ 改用原生 video 控制，使其佔滿容器，解鎖 100% 全螢幕 */
+        .video-stage video { width: 100%; height: 100%; object-fit: contain; outline: none; }
         .video-secure-bar { position: absolute; top: 0; left: 0; width: 100%; height: 50px; z-index: 5; background: rgba(0,0,0,0); pointer-events: none; }
 
         .playing-info { padding: 16px 4px; border-bottom: 1px solid #222; }
@@ -220,9 +219,8 @@
         // ==========================================
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 核心軍規防護中`;
 
-            // 等待開場動畫
             setTimeout(() => {
                 isAnimationFinished = true;
                 checkAndHideSplash();
@@ -268,7 +266,6 @@
 
             let filtered = allVideosData.filter(v => v.name.toLowerCase().includes(keyword));
             
-            // 排除當前正在播放的影片，避免重複
             if (currentPlayingToken) {
                 filtered = filtered.filter(v => v.secureToken !== currentPlayingToken);
             }
@@ -299,16 +296,15 @@
         }
 
         // ==========================================
-        // 🔐 解密專用模組 (請依據您的加密方式修改)
+        // 🔐 解密專用模組
         // ==========================================
         function decryptToken(encryptedToken) {
-            // 如果您是用 Base64 加密，請改成： return atob(encryptedToken);
-            // 如果沒有加密，請直接回傳：
+            // 如果您有用 Base64 加密，請改為：return atob(encryptedToken);
             return encryptedToken; 
         }
 
         // ==========================================
-        // 🚀 播放影片 (含解密處理與全螢幕授權)
+        // 🚀 播放影片 (核心修正：直接使用原生影片串流，徹底解鎖全螢幕)
         // ==========================================
         function playVideo(token, title, date) {
             const mainLayout = document.getElementById('mainLayout');
@@ -319,22 +315,21 @@
             const listHeader = document.getElementById('listHeader');
 
             try {
-                // 1. 取得真實 File ID (透過上方的解密模組)
                 const fileId = decryptToken(token); 
-                
-                // 2. 儲存原始加密 token 供側邊欄過濾比對使用
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 3. 嵌入 Google 原生播放器 (補齊全螢幕權限屬性)
+                // 🛠️ 關鍵變更：將 iframe 改為原生 HTML5 <video> 播放器，並串接 Google Drive 影片直接下載點
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
-                    <iframe 
-                        src="https://docs.google.com/file/d/${fileId}/preview" 
-                        allow="autoplay; fullscreen; picture-in-picture" 
-                        allowfullscreen="true"
-                        webkitallowfullscreen="true"
-                        mozallowfullscreen="true">
-                    </iframe>`;
+                    <video 
+                        controls 
+                        autoplay
+                        controlsList="nodownload" 
+                        disablePictureInPicture
+                        playsinline>
+                        <source src="https://drive.google.com/uc?id=${fileId}&export=download" type="video/mp4">
+                        您的瀏覽器不支援 HTML5 播放器。
+                    </video>`;
 
                 currentTitle.innerText = title;
                 currentDate.innerText = `發布日期：${date}`;
@@ -343,11 +338,10 @@
                 mainLayout.classList.add('playing');
                 listHeader.innerText = '推薦影片';
 
-                // 重新渲染右側，排除此影片
                 renderGrid(token);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } catch (e) {
-                alert("存取失敗：密鑰解讀異常或權限不足。");
+                alert("存取失敗：影片 ID 讀取異常。");
                 console.error(e);
             }
         }
