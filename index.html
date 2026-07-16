@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>施柏謙影音系統</title>
+    <title>施柏謙影音系統 - 核心安全防禦版</title>
     
     <style>
         /* =========================================
@@ -68,7 +68,7 @@
         /* =========================================
            3. 置中首頁佈局
            ========================================= */
-        #app { padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
+        #app { padding: 40px 20px; max-width: 1000px; margin: 0 auto; }
         header { text-align: center; margin: 40px 0 20px 0; }
         header h1 { font-size: 32px; letter-spacing: 3px; margin: 0; color: #fff; font-weight: bold; }
         
@@ -83,21 +83,22 @@
         #loading-status { text-align: center; color: #888; margin-bottom: 30px; font-size: 15px; }
 
         /* =========================================
-           4. 影片清單網格與劇院版面排版
+           4. 影片清單與自適應流動版面 (推薦影片一律排在下方)
            ========================================= */
-        .main-layout { display: flex; flex-direction: column; gap: 30px; }
-
-        /* 寬螢幕劇院模式：左邊影片，右邊推薦 */
-        @media (min-width: 1000px) {
-            .main-layout.playing { flex-direction: row; align-items: flex-start; }
-            .main-layout.playing .left-column { flex: 1; max-width: calc(100% - 380px); }
-            .main-layout.playing .right-column { width: 350px; flex-shrink: 0; }
-            .main-layout.playing .video-grid { display: flex; flex-direction: column; gap: 12px; }
-            .main-layout.playing .video-card { flex-direction: row; gap: 12px; background: #111; }
-            .main-layout.playing .thumbnail-container { width: 140px; flex-shrink: 0; }
+        .main-layout { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 25px; 
+            width: 100%;
         }
 
-        .video-grid { display: grid; gap: 24px 18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+        /* 影片清單網格：長度與數量自動適應螢幕大小 */
+        .video-grid { 
+            display: grid; 
+            gap: 20px; 
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            width: 100%;
+        }
 
         .video-card { 
             background: #151515; border-radius: 12px; overflow: hidden; cursor: pointer; 
@@ -108,12 +109,12 @@
         .thumbnail-container { width: 100%; aspect-ratio: 16/9; background: #1a1a1a; position: relative; overflow: hidden; }
         .thumbnail { width: 100%; height: 100%; object-fit: cover; display: block; }
         
-        .video-info { padding: 16px; display: flex; flex-direction: column; justify-content: space-between; flex: 1; }
-        .video-title { margin: 0 0 8px 0; font-size: 15px; line-height: 1.4; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #fff; }
+        .video-info { padding: 12px; display: flex; flex-direction: column; justify-content: space-between; flex: 1; }
+        .video-title { margin: 0 0 6px 0; font-size: 14px; line-height: 1.4; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #fff; }
         .video-date { margin: 0; font-size: 12px; color: #777; }
         
         /* =========================================
-           5. 劇院播放器區塊
+           5. 劇院播放器與極致安全防護
            ========================================= */
         #player-area { display: none; margin-bottom: 20px; width: 100%; }
 
@@ -124,13 +125,28 @@
         
         .video-stage iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
         
-        /* 透明防護：pointer-events: none 允許滑鼠點擊穿透，這樣才能正常使用全螢幕跟進度條 */
-        .video-secure-bar { position: absolute; top: 0; left: 0; width: 100%; height: 50px; z-index: 5; background: rgba(0,0,0,0); pointer-events: none; }
+        /* 🛡️ 核心防外跳安全蓋板：
+           寬 100% 高 55px 覆蓋在播放器頂部， pointer-events: auto 
+           能夠完美阻擋使用者去點擊 Google 播放器右上角的「在新分頁開啟（外跳下載）」按鈕！ */
+        .video-secure-bar { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 55px; 
+            z-index: 10; 
+            background: rgba(0,0,0,0); 
+            pointer-events: auto; 
+        }
 
-        .playing-info { padding: 16px 4px; border-bottom: 1px solid #222; }
+        .playing-info { 
+            padding: 16px 4px; 
+            border-bottom: 1px solid #222; 
+        }
         .playing-title { font-size: 20px; font-weight: bold; margin: 0 0 8px 0; color: #fff; line-height: 1.4; }
         .playing-meta { font-size: 14px; color: #aaa; }
-        .grid-header { font-size: 18px; font-weight: bold; margin: 0 0 15px 0; color: #aaa; }
+        
+        .grid-header { font-size: 18px; font-weight: bold; margin: 15px 0 15px 0; color: #aaa; }
 
         footer { text-align: center; margin-top: 60px; padding: 24px; color: #444; font-size: 13px; border-top: 1px solid #111; }
         
@@ -187,14 +203,14 @@
     </div>
 
     <script>
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyIJd-CE6i_4pOL03QKTfIkMkJgEVJOnQrjVunW6HV1fgMUkjUL5xLf-7b8ZZFp-l45/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx6TVaiXc0DV27mkHX5ReK8R9T0ocY5gxeTuKiOkls7BelgnSjG9E_d6GnfnnlXmvAo/exec';
         
         let allVideosData = [];
         let isDataLoaded = false;
         let isAnimationFinished = false;
 
         // ==========================================
-        // 🛡️ 軍規級安全防禦
+        // 🛡️ 軍規級防代碼偵測與防右鍵
         // ==========================================
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
@@ -221,7 +237,7 @@
         // ==========================================
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 核心軍規防護中`;
 
             setTimeout(() => {
                 isAnimationFinished = true;
@@ -298,27 +314,27 @@
         }
 
         // ==========================================
-        // 🔐 您的專屬「雙重混淆」前端解密演算法
+        // 🔐 配合您 GAS 密碼學的前端雙重解密演算法
         // ==========================================
         function decryptToken(secureToken) {
             try {
-                // 1. 將每個字元的 ASCII 碼向前移回 1 個位元 (-1)
+                // 1. 將每個字元 ASCII 碼向前還原 1 位元 (-1)
                 let chars = secureToken.split('');
                 for (let i = 0; i < chars.length; i++) {
                     chars[i] = String.fromCharCode(chars[i].charCodeAt(0) - 1);
                 }
                 let base64Str = chars.join('');
                 
-                // 2. 進行 Base64 解碼得到真實的 File ID
+                // 2. 解碼 Base64 取得真實 File ID
                 return atob(base64Str);
             } catch (err) {
-                console.error("解密失敗，請檢查 Token 格式是否正確", err);
+                console.error("解密失敗", err);
                 return null;
             }
         }
 
         // ==========================================
-        // 🚀 播放影片 (使用不受限網域 + 補上所有全螢幕相容授權屬性)
+        // 🚀 播放影片 (極致防外跳版)
         // ==========================================
         function playVideo(token, title, date) {
             const mainLayout = document.getElementById('mainLayout');
@@ -329,16 +345,15 @@
             const listHeader = document.getElementById('listHeader');
 
             try {
-                // 🔑 使用雙重混淆解密還原真正的 File ID
                 const fileId = decryptToken(token); 
                 if (!fileId) {
-                    alert("解密金鑰毀損或格式錯誤！");
+                    alert("解密失敗，檔案異常。");
                     return;
                 }
-
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 🌟 改用 drive.google.com 的 preview 嵌入，並加上完整全螢幕相容權限
+                // 🌟 使用 drive.google.com 的 preview 嵌入
+                // 🌟 並在頂部疊加透明遮蓋條，防止使用者點擊右上角的外跳功能按鈕去下載影片！
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
