@@ -19,7 +19,7 @@
         }
         
         /* =========================================
-           1. 開場流體動畫 (修復顯示時間，完整呈現)
+           1. 開場流體動畫
            ========================================= */
         #splash {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000;
@@ -37,13 +37,9 @@
         }
 
         @keyframes morph-sequence {
-            /* 0% 正三角形 */
             0% { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); transform: rotate(0deg); width: 80px; height: 80px; }
-            /* 30% 旋轉並變成彩球 */
             30% { clip-path: circle(50% at 50% 50%); transform: rotate(360deg); width: 80px; height: 80px; }
-            /* 60% 保持圓形準備延展 */
             60% { width: 80px; height: 80px; border-radius: 50%; clip-path: none; }
-            /* 100% 展開成彩色底線 */
             100% { width: 320px; height: 4px; border-radius: 2px; transform: rotate(360deg); clip-path: none; }
         }
 
@@ -51,7 +47,6 @@
             position: absolute; margin-top: -30px; font-size: 28px; letter-spacing: 8px; font-weight: bold;
             background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; color: transparent;
             opacity: 0; 
-            /* 延遲 2.5 秒後浮現文字 */
             animation: text-appear 1s ease-out 2.5s forwards;
         }
 
@@ -127,8 +122,9 @@
             overflow: hidden; border-radius: 12px; border: 1px solid #222;
         }
         
+        /* 🛠️ CSS 修正：讓 Google 原生控制列完美呈現，並防止遮罩擋住點擊 */
         .video-stage iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-        .video-secure-bar { position: absolute; top: 0; left: 0; width: 100%; height: 80px; z-index: 5; background: rgba(0,0,0,0.01); pointer-events: none; }
+        .video-secure-bar { position: absolute; top: 0; left: 0; width: 100%; height: 50px; z-index: 5; background: rgba(0,0,0,0); pointer-events: none; }
 
         .playing-info { padding: 16px 4px; border-bottom: 1px solid #222; }
         .playing-title { font-size: 20px; font-weight: bold; margin: 0 0 8px 0; color: #fff; line-height: 1.4; }
@@ -226,7 +222,7 @@
             const currentYear = new Date().getFullYear();
             document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 核心軍規防護中`;
 
-            // 等待開場動畫完全呈現
+            // 等待開場動畫
             setTimeout(() => {
                 isAnimationFinished = true;
                 checkAndHideSplash();
@@ -263,17 +259,16 @@
         }
 
         // ==========================================
-        // 渲染影片清單 (排除重複，修復推薦清單)
+        // 渲染影片清單 (自動排除正在播放的影片)
         // ==========================================
         function renderGrid(currentPlayingToken = null) {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const grid = document.getElementById('videoGrid');
             grid.innerHTML = ''; 
 
-            // 1. 根據搜尋關鍵字篩選
             let filtered = allVideosData.filter(v => v.name.toLowerCase().includes(keyword));
             
-            // 2. 如果正在播放影片，推薦清單中自動「排除當前正在播放的影片」
+            // 排除當前正在播放的影片，避免重複
             if (currentPlayingToken) {
                 filtered = filtered.filter(v => v.secureToken !== currentPlayingToken);
             }
@@ -283,7 +278,6 @@
                 return;
             }
 
-            // 3. 渲染影片卡片
             filtered.forEach(video => {
                 const card = document.createElement('div');
                 card.className = 'video-card';
@@ -297,9 +291,7 @@
             });
         }
 
-        // 搜尋篩選機制
         function filterVideos() {
-            // 如果當前有影片在播放，搜尋時仍然傳入當前影片的 ID 以免重複
             const stageContainer = document.getElementById('stage-container');
             const isPlaying = document.getElementById('mainLayout').classList.contains('playing');
             const currentToken = isPlaying ? stageContainer.getAttribute('data-playing-token') : null;
@@ -307,7 +299,16 @@
         }
 
         // ==========================================
-        // 🚀 播放影片 (全螢幕解鎖 + 推薦影片不重複)
+        // 🔐 解密專用模組 (請依據您的加密方式修改)
+        // ==========================================
+        function decryptToken(encryptedToken) {
+            // 如果您是用 Base64 加密，請改成： return atob(encryptedToken);
+            // 如果沒有加密，請直接回傳：
+            return encryptedToken; 
+        }
+
+        // ==========================================
+        // 🚀 播放影片 (含解密處理與全螢幕授權)
         // ==========================================
         function playVideo(token, title, date) {
             const mainLayout = document.getElementById('mainLayout');
@@ -318,12 +319,13 @@
             const listHeader = document.getElementById('listHeader');
 
             try {
-                const fileId = token; 
+                // 1. 取得真實 File ID (透過上方的解密模組)
+                const fileId = decryptToken(token); 
                 
-                // 保存當前正在播放的 token
+                // 2. 儲存原始加密 token 供側邊欄過濾比對使用
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 🌟 【全螢幕補強】：嵌入屬性完全解鎖
+                // 3. 嵌入 Google 原生播放器 (補齊全螢幕權限屬性)
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
@@ -341,11 +343,12 @@
                 mainLayout.classList.add('playing');
                 listHeader.innerText = '推薦影片';
 
-                // 重新渲染右側清單（排除正在播放的這部）
+                // 重新渲染右側，排除此影片
                 renderGrid(token);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } catch (e) {
-                alert("存取失敗：影片 ID 讀取異常。");
+                alert("存取失敗：密鑰解讀異常或權限不足。");
+                console.error(e);
             }
         }
 
