@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>施柏謙電影</title>
+    <title>施柏謙影音系統</title>
     
     <style>
         /* =========================================
@@ -53,7 +53,7 @@
         @keyframes gradient-sweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
         /* =========================================
-           2. ✨ 左上角專屬彩色底按鈕（移除白字、按鈕放大）
+           2. 🌟 左上角專屬彩色底按鈕（無白字、按鈕放大且發光）
            ========================================= */
         .top-left-logo {
             position: fixed; 
@@ -65,18 +65,18 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* 彩色漸層大橫條 */
+        /* 加大的彩色漸層橫條 */
         .logo-color-bar { 
-            width: 140px; 
-            height: 14px; 
+            width: 150px; 
+            height: 16px; 
             background: linear-gradient(90deg, #ff4500, #ff8c00, #ff0000); 
-            border-radius: 7px; 
+            border-radius: 8px; 
             box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
             transition: all 0.3s;
         }
 
         .top-left-logo:hover .logo-color-bar { 
-            transform: scaleX(1.1) scaleY(1.2);
+            transform: scaleX(1.08) scaleY(1.15);
             box-shadow: 0 0 25px rgba(255, 140, 0, 0.9);
         }
 
@@ -129,7 +129,7 @@
         .video-date { margin: 0; font-size: 12px; color: #777; }
         
         /* =========================================
-           5. 劇院播放器與極致安全防護
+           5. 劇院播放器與安全防護
            ========================================= */
         #player-area { display: none; margin-bottom: 20px; width: 100%; }
 
@@ -138,21 +138,20 @@
             overflow: hidden; border-radius: 12px; border: 1px solid #222;
         }
         
-        .video-stage iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        .video-stage iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 1; }
         
-        /* 🛡️ 終極防下載、防外跳、防彈窗下載蓋板：
-           全面覆蓋整個播放器，直接阻擋所有對 iframe 內部的點擊！
-           這會讓 Google 錯誤時產生的「下載」按鈕完全失效，滑鼠根本點不到它。 */
+        /* 🛡️ 精準防下載頂部安全帶：
+           高度設為 60px 覆蓋播放器最上方，僅阻擋 Google 播放器右上角的「外跳（在新分頁開啟）」按鈕。
+           影片中間的播放/暫停按鈕、下方的控制列完全不受影響，可以自由點擊！ */
         .video-secure-bar { 
             position: absolute; 
             top: 0; 
             left: 0; 
             width: 100%; 
-            height: 100%; 
+            height: 60px; 
             z-index: 10; 
             background: rgba(0,0,0,0); 
             pointer-events: auto; 
-            cursor: default;
         }
 
         .playing-info { 
@@ -252,7 +251,7 @@
         // ==========================================
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 |此網站受保護中`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 |`;
 
             setTimeout(() => {
                 isAnimationFinished = true;
@@ -349,7 +348,7 @@
         }
 
         // ==========================================
-        // 🚀 播放影片 (極致防禦 & 阻擋下載版)
+        // 🚀 播放影片
         // ==========================================
         function playVideo(token, title, date) {
             const mainLayout = document.getElementById('mainLayout');
@@ -367,10 +366,9 @@
                 }
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 🌟 使用 drive.google.com 的 preview 嵌入
-                // 🌟 使用「全覆蓋安全盾牌」，阻絕任何點擊 iframe 內部出現「下載」按鈕的可能性！
+                // 🌟 改良頂部安全帶 (高 60px)，完美阻絕右上角外跳，其餘地方完全可以自由點擊！
                 stageContainer.innerHTML = `
-                    <div class="video-secure-bar" id="secureBar"></div>
+                    <div class="video-secure-bar"></div>
                     <iframe 
                         id="videoIframe"
                         src="https://drive.google.com/file/d/${fileId}/preview" 
