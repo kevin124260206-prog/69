@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>施柏謙影音系統</title>
+    <title>施柏謙 電影</title>
     
     <style>
         /* =========================================
@@ -53,7 +53,7 @@
         @keyframes gradient-sweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
         /* =========================================
-           2. 🌟 左上角專屬彩色底按鈕（無白字、按鈕放大且發光）
+           2. 🌟 左上角專屬「施柏謙電影」彩色底按鈕 (加大且發光)
            ========================================= */
         .top-left-logo {
             position: fixed; 
@@ -63,31 +63,59 @@
             z-index: 15000;
             display: inline-block;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
         }
         
-        /* 加大的彩色漸層橫條 */
+        /* 亮橘紅彩色漸層大按鈕 */
         .logo-color-bar { 
-            width: 150px; 
-            height: 16px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 160px; /* 按鈕加大 */
+            height: 38px; /* 高度增加 */
             background: linear-gradient(90deg, #ff4500, #ff8c00, #ff0000); 
-            border-radius: 8px; 
+            border-radius: 19px; /* 完美的圓角膠囊造型 */
             box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
             transition: all 0.3s;
         }
 
+        /* 橘紅底上面的「施柏謙電影」字體 */
+        .logo-text {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
         .top-left-logo:hover .logo-color-bar { 
-            transform: scaleX(1.08) scaleY(1.15);
+            transform: scale(1.08); /* 滑鼠懸停稍微放大 */
             box-shadow: 0 0 25px rgba(255, 140, 0, 0.9);
         }
 
         /* =========================================
-           3. 置中首頁佈局
+           3. 首頁佈局與自動消失控制
            ========================================= */
         #app { padding: 40px 20px; max-width: 1000px; margin: 0 auto; }
-        header { text-align: center; margin: 40px 0 20px 0; }
+        
+        header { 
+            text-align: center; 
+            margin: 40px 0 20px 0; 
+            transition: all 0.4s ease-in-out;
+            opacity: 1;
+            max-height: 100px;
+            overflow: hidden;
+        }
         header h1 { font-size: 32px; letter-spacing: 3px; margin: 0; color: #fff; font-weight: bold; }
         
-        .search-bar { text-align: center; margin-bottom: 40px; }
+        .search-bar { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            transition: all 0.4s ease-in-out;
+            opacity: 1;
+            max-height: 100px;
+            overflow: hidden;
+        }
         .search-bar input { 
             padding: 14px 24px; width: 85%; max-width: 550px; border-radius: 30px; border: none; 
             background: #1e1e1e; color: #fff; font-size: 15px; outline: none; 
@@ -96,6 +124,22 @@
         .search-bar input:focus { background: #252525; box-shadow: inset 0 2px 5px rgba(0,0,0,0.8), 0 0 12px rgba(255, 69, 0, 0.3); }
         
         #loading-status { text-align: center; color: #888; margin-bottom: 30px; font-size: 15px; }
+
+        /* 🎬 劇院模式觸發：點擊播放後，隱藏主標題與搜尋列 */
+        body.playing-mode header {
+            opacity: 0;
+            max-height: 0;
+            margin: 0;
+            padding: 0;
+            pointer-events: none;
+        }
+        body.playing-mode .search-bar {
+            opacity: 0;
+            max-height: 0;
+            margin: 0;
+            padding: 0;
+            pointer-events: none;
+        }
 
         /* =========================================
            4. 影片清單與自適應流動版面 (推薦影片一律排在下方)
@@ -141,8 +185,8 @@
         .video-stage iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 1; }
         
         /* 🛡️ 精準防下載頂部安全帶：
-           高度設為 60px 覆蓋播放器最上方，僅阻擋 Google 播放器右上角的「外跳（在新分頁開啟）」按鈕。
-           影片中間的播放/暫停按鈕、下方的控制列完全不受影響，可以自由點擊！ */
+           高度僅 60px 覆蓋播放器右上角的外跳按鈕。
+           影片中間與下方的點擊、播放/暫停完全不受影響，百分之百恢復正常點擊！ */
         .video-secure-bar { 
             position: absolute; 
             top: 0; 
@@ -177,20 +221,22 @@
     <div id="defense-overlay">系統安全機制已觸發，請關閉開發者工具。</div>
 
     <div id="splash">
-        <div class="brand-text">施柏謙電影</div>
+        <div class="brand-text">施柏謙 電影</div>
         <div class="morph-shape"></div>
     </div>
 
     <div class="top-left-logo" onclick="resetView()" title="回到首頁">
-        <div class="logo-color-bar"></div>
+        <div class="logo-color-bar">
+            <span class="logo-text">施柏謙 電影</span>
+        </div>
     </div>
 
     <div id="app">
-        <header>
-            <h1>施柏謙影音系統</h1>
+        <header id="mainHeader">
+            <h1>施柏謙 電影</h1>
         </header>
 
-        <div class="search-bar">
+        <div class="search-bar" id="searchBarArea">
             <input type="text" id="searchInput" placeholder="搜尋影片名稱..." onkeyup="filterVideos()">
         </div>
         
@@ -251,7 +297,7 @@
         // ==========================================
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 |`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 核心軍規防護中`;
 
             setTimeout(() => {
                 isAnimationFinished = true;
@@ -332,14 +378,11 @@
         // ==========================================
         function decryptToken(secureToken) {
             try {
-                // 1. 將每個字元 ASCII 碼向前還原 1 位元 (-1)
                 let chars = secureToken.split('');
                 for (let i = 0; i < chars.length; i++) {
                     chars[i] = String.fromCharCode(chars[i].charCodeAt(0) - 1);
                 }
                 let base64Str = chars.join('');
-                
-                // 2. 解碼 Base64 取得真實 File ID
                 return atob(base64Str);
             } catch (err) {
                 console.error("解密失敗", err);
@@ -348,7 +391,7 @@
         }
 
         // ==========================================
-        // 🚀 播放影片
+        // 🚀 播放影片 (隱藏大標題與搜尋列，進入乾淨劇院模式)
         // ==========================================
         function playVideo(token, title, date) {
             const mainLayout = document.getElementById('mainLayout');
@@ -366,7 +409,7 @@
                 }
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 🌟 改良頂部安全帶 (高 60px)，完美阻絕右上角外跳，其餘地方完全可以自由點擊！
+                // 🌟 使用頂部 60px 安全蓋板，既能防外跳/防下載，又能讓影片中間與底下隨便點擊播放！
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
@@ -382,6 +425,9 @@
                 playerArea.style.display = 'block';
                 mainLayout.classList.add('playing');
                 listHeader.innerText = '推薦影片';
+                
+                // 🎬 讓主頁面進入劇院模式（隱藏中間的「施柏謙影音系統」與「搜尋框」）
+                document.body.classList.add('playing-mode');
 
                 renderGrid(token);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -392,7 +438,7 @@
         }
 
         // ==========================================
-        // 🔙 回首頁功能
+        // 🔙 回首頁功能 (再次還原大標題與搜尋列)
         // ==========================================
         function resetView() {
             const mainLayout = document.getElementById('mainLayout');
@@ -400,6 +446,9 @@
             const stageContainer = document.getElementById('stage-container');
             const listHeader = document.getElementById('listHeader');
             
+            // 🎬 退出劇院模式（重新顯示「施柏謙影音系統」標題與搜尋框）
+            document.body.classList.remove('playing-mode');
+
             playerArea.style.display = 'none';
             stageContainer.innerHTML = ''; 
             stageContainer.removeAttribute('data-playing-token');
