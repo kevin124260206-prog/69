@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>施柏謙影音系統 - 頂級防禦版</title>
+    <title>施柏謙影音系統 - 頂級防禦一鍵播放版</title>
     
     <style>
         /* =========================================
@@ -98,15 +98,15 @@
         .close-btn { background: #ff4500; border: none; }
         .close-btn:active { background: #d63a00; }
 
-        /* 🚀 關鍵安全裁剪容器：隱藏 Google Drive 頂部工具列 */
+        /* 🚀 安全裁剪容器：隱藏 Google Drive 頂部工具列 */
         .video-stage { 
             flex: 1; 
             position: relative; 
             background: #000; 
-            overflow: hidden; /* 裁剪超出範圍的內容 */
+            overflow: hidden; 
         }
         
-        /* 將 iframe 往上頂 60px，並增加 60px 高度，使頂部的下載與彈出按鈕移出可見區域 */
+        /* iframe 往上頂 60px，把可能流出下載按鈕的頂欄移出可見視野 */
         .video-stage iframe { 
             position: absolute;
             top: -60px; 
@@ -116,46 +116,17 @@
             border: none; 
         }
 
-        /* 🚀 關鍵防懸停防干擾玻璃層 */
-        .video-shield {
+        /* 🚀 隱形防禦頂罩（關鍵優化）：
+           我們只把「最頂端」可能被滑鼠懸停觸發下載按鈕的區塊鎖定。
+           下方其他區域設定 pointer-events: none 讓滑鼠穿透，達到直接點擊「一鍵播放」！ */
+        .video-secure-bar {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 80px; /* 覆蓋頂部 80 像素的隱形隔離帶，防止滑鼠游標移到上方觸發 Google UI */
             z-index: 5;
-            background: rgba(0,0,0,0.01); /* 微乎其微的背景，阻擋滑鼠穿透 */
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* 自訂防禦播放按鈕（取代 Google 內建的彩色按鈕） */
-        .custom-play-btn {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 69, 0, 0.9);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 20px rgba(255, 69, 0, 0.6);
-            transition: transform 0.2s, background 0.2s;
-        }
-        .custom-play-btn::after {
-            content: '';
-            display: block;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 15px 0 15px 25px;
-            border-color: transparent transparent transparent #ffffff;
-            margin-left: 6px;
-        }
-        .video-shield:hover .custom-play-btn {
-            transform: scale(1.1);
-            background: rgba(255, 140, 0, 1);
+            background: rgba(0,0,0,0.01);
         }
 
         footer { text-align: center; margin-top: 40px; padding: 20px; color: #555; font-size: 13px; }
@@ -194,11 +165,10 @@
     <!-- 專業版 App 播放器 -->
     <div id="player-modal">
         <div class="top-bar">
-            <!-- 僅保留關閉按鈕，拿掉全螢幕按鈕 -->
             <button class="btn close-btn" onclick="closePlayer()">✕ 關閉</button>
         </div>
         <div class="video-stage" id="stage-container">
-            <!-- 遮罩與實體 iframe 會動態渲染至此 -->
+            <!-- 動態插入一鍵穿透播放系統 -->
         </div>
     </div>
 
@@ -247,7 +217,7 @@
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 `;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有`;
 
             // 動態開場動畫判定
             setTimeout(() => {
@@ -353,11 +323,9 @@
             try {
                 const fileId = decodeSecureToken(token);
                 
-                // 渲染包含安全裁剪的 iframe 與 防干擾遮罩
+                // 渲染一鍵穿透系統：移除遮蓋中央的遮罩，改為隱形頂欄
                 stageContainer.innerHTML = `
-                    <div class="video-shield" id="videoShield" onclick="startVideoPlay()">
-                        <div class="custom-play-btn"></div>
-                    </div>
+                    <div class="video-secure-bar"></div>
                     <iframe 
                         id="securePlayerFrame"
                         src="https://drive.google.com/file/d/${fileId}/preview" 
@@ -369,14 +337,6 @@
                 document.body.style.overflow = 'hidden';
             } catch (e) {
                 alert("存取拒絕：金鑰驗證失敗。");
-            }
-        }
-
-        // 點擊「自訂播放鍵」後，移除遮罩，使用戶能與內嵌播放器進行正常互動
-        function startVideoPlay() {
-            const shield = document.getElementById('videoShield');
-            if (shield) {
-                shield.style.display = 'none';
             }
         }
 
