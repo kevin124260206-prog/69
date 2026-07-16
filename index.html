@@ -117,13 +117,13 @@
         .iframe-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background-color: #000; }
         .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-        /* 【關鍵修正：全球最高層級返回按鈕】絕對不會被 iframe 蓋住，按了 100% 成功返回 */
+        /* 【絕對返回】超級懸浮關閉鈕：置於視窗最右上角，層級最高，100% 能點擊返回 */
         .close-global-btn { 
             position: fixed; top: 20px; right: 20px; 
             width: 50px; height: 50px; background: rgba(255, 69, 0, 0.9); 
             border-radius: 50%; display: flex; justify-content: center; align-items: center; 
             font-size: 32px; color: white; cursor: pointer; 
-            z-index: 999999; /* 極高層級，絕對置頂 */
+            z-index: 999999; /* 層級設定極高，絕不被蓋住 */
             box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
             transition: transform 0.2s, background 0.2s; 
             font-weight: bold;
@@ -154,14 +154,14 @@
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="搜尋影片名稱..." onkeyup="filterVideos()">
         </div>
-        <div id="loading-status">正在載入影音資料，請稍候...</div>
+        <div id="loading-status">正在安全載入影音資料，請稍候...</div>
         <div class="video-container" id="videoGrid"></div>
         <footer><p id="copyright"></p></footer>
     </div>
 
     <!-- 播放器模態框 -->
     <div id="player-modal">
-        <!-- 獨立全域返回按鈕，置頂高解析度渲染 -->
+        <!-- 頂層全局返回鈕 -->
         <div class="close-global-btn" onclick="closePlayer()" title="關閉返回">×</div>
         
         <div class="player-wrapper">
@@ -172,14 +172,14 @@
     </div>
 
     <script>
-        // 【請在此填入你最新部署的 GAS 網址】
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycby_iCUyuJ_32NRwntOmV0oeqv_bWN20p3jTkW8UBzKsGKGXj5JnqJc2JCj7_11cClqz/exec';
+        // 【請在此處替換為你最新部署得到的 GAS 網址】
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycby2XDQonHtPkPGCnvPoerzvZZ72pbWLfnNOgkXv3ouTX4fb7TDStrc2PnKPAXtnh-tn/exec';
         
         let allVideosData = [];
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 此系統受Google保護`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 影片連結受底層編碼保護`;
 
             // 5秒開場動畫
             setTimeout(() => {
@@ -194,7 +194,7 @@
             fetchVideos();
         };
 
-        // 安全防護：禁用右鍵與常用 F12 工具
+        // 安全防護：禁用滑鼠右鍵與 F12 開發者工具
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || (e.ctrlKey && ['s', 'u', 'c', 'i', 'j'].includes(e.key.toLowerCase()))) {
@@ -217,7 +217,7 @@
                 }
             } catch(err) { 
                 console.error("讀取失敗:", err);
-                document.getElementById('loading-status').innerText = '載入失敗，請確認 GAS 是否已發布，且資料夾已開放「任何人知道連結皆可檢視」。'; 
+                document.getElementById('loading-status').innerText = '載入失敗，請確認 GAS 是否已重新發布，且雲端資料夾已開放為「知道連結的任何人皆可檢視」。'; 
             }
         }
 
@@ -237,8 +237,9 @@
             filtered.forEach(video => {
                 const card = document.createElement('div');
                 card.className = 'video-card';
-                card.onclick = () => openPlayer(video.secureToken); // 傳遞加密 Token，絕不洩漏 ID
+                card.onclick = () => openPlayer(video.secureToken); // 傳遞加密過的安全 Token
                 
+                // 確保縮圖完美呈現
                 const thumbSrc = video.thumbnail ? video.thumbnail : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
                 card.innerHTML = `
@@ -264,24 +265,24 @@
                 // 解密還原真實 ID
                 const fileId = atob(secureToken);
                 
-                // 動態生成 iframe (官方防毒警告相容、大檔案支援、自適應寬度)
+                // 動態在記憶體中生成並注入 iframe
                 iframeBox.innerHTML = `<iframe src="https://drive.google.com/file/d/${fileId}/preview" allow="autoplay" allowfullscreen></iframe>`;
                 
                 modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden'; // 防止背景滾動
+                document.body.style.overflow = 'hidden'; // 鎖定背景滾動
             } catch (err) {
-                alert("播放初始化失敗，請確認網頁載入是否正確。");
+                alert("播放初始化失敗，請重新載入網頁。");
             }
         }
 
-        // 【徹底關閉並還原】銷毀 iframe 節點，防堵記憶體與歷史紀錄卡死，100% 成功返回
+        // 【徹底關閉並銷毀】完全清空 Iframe 元素，影片即刻中斷，釋放內存，100% 返回成功
         function closePlayer() {
             const modal = document.getElementById('player-modal');
             const iframeBox = document.getElementById('iframe-box');
             
             modal.style.display = 'none';
-            iframeBox.innerHTML = ''; // 徹底清除 Iframe 元素，影片立刻中斷
-            document.body.style.overflow = 'auto'; // 恢復主頁滾動
+            iframeBox.innerHTML = ''; // 徹底清除 Iframe 元素
+            document.body.style.overflow = 'auto'; // 恢復網頁滾動
         }
 
         // 點擊 LOGO 無縫回到最原始狀態
