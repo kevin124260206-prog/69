@@ -17,7 +17,7 @@
         #splash {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 9999; transition: opacity 0.5s ease-out;
+            z-index: 99999; transition: opacity 0.5s ease-out;
         }
         
         .morph-shape {
@@ -49,8 +49,21 @@
            2. 系統主畫面與劇院級網格佈局
            ========================================= */
         #app { display: none; padding: 30px; max-width: 1600px; margin: 0 auto; }
-        header { text-align: center; margin: 20px 0 40px 0; }
-        header h2 { font-size: 36px; letter-spacing: 2px; }
+        
+        /* LOGO 與標題樣式 */
+        header { text-align: center; margin: 20px 0 40px 0; cursor: pointer; transition: opacity 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        header:hover { opacity: 0.8; }
+        .logo-circle {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, #ff4500, #ff8c00);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 28px; font-weight: bold; color: white;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
+            transition: transform 0.3s;
+        }
+        header:hover .logo-circle { transform: scale(1.1) rotate(10deg); }
+        header h2 { font-size: 36px; letter-spacing: 2px; margin: 0; }
         
         .search-bar { text-align: center; margin-bottom: 20px; }
         .search-bar input { padding: 18px 30px; width: 80%; max-width: 700px; border-radius: 50px; border: none; background: #222; color: #fff; font-size: 18px; outline: none; box-shadow: inset 0 2px 8px rgba(0,0,0,0.6); transition: box-shadow 0.3s; }
@@ -58,6 +71,7 @@
         
         #loading-status { text-align: center; color: #aaa; margin-bottom: 30px; font-size: 16px; letter-spacing: 1px; }
 
+        /* 影片網格佈局 */
         .video-container { display: grid; gap: 40px; grid-template-columns: 1fr; }
         @media (min-width: 768px) { .video-container { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1024px) { .video-container { grid-template-columns: repeat(3, 1fr); } }
@@ -91,14 +105,14 @@
         /* =========================================
            3. 播放器模態框 (16:9 自適應 Iframe)
            ========================================= */
-        #player-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        #player-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.98); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .player-wrapper { position: relative; width: 90%; max-width: 1200px; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 50px rgba(0,0,0,0.8); }
         
         /* 16:9 比例容器 */
         .iframe-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; }
         .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-        .close-btn { position: absolute; top: -45px; right: 0; color: #fff; font-size: 40px; cursor: pointer; z-index: 101; font-weight: bold; transition: color 0.3s; }
+        .close-btn { position: absolute; top: -50px; right: 0; color: #fff; font-size: 40px; cursor: pointer; z-index: 20001; font-weight: bold; transition: color 0.3s; }
         .close-btn:hover { color: #ff4500; }
         
         .watermark { position: absolute; bottom: 20px; right: 25px; color: rgba(255,255,255,0.3); font-size: 20px; font-weight: bold; letter-spacing: 3px; pointer-events: none; z-index: 99; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); }
@@ -116,7 +130,12 @@
 
     <!-- 主程式介面 -->
     <div id="app">
-        <header><h2>施柏謙影音系統</h2></header>
+        <!-- 點擊 Header 觸發 resetView() 返回最一開始的無搜尋狀態 -->
+        <header onclick="resetView()" title="返回首頁">
+            <div class="logo-circle">施</div>
+            <h2>施柏謙影音系統</h2>
+        </header>
+
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="搜尋影片名稱..." onkeyup="filterVideos()">
         </div>
@@ -129,6 +148,7 @@
     <div id="player-modal">
         <div class="player-wrapper">
             <div style="position: relative;">
+                <!-- 關閉按鈕 -->
                 <span class="close-btn" onclick="closePlayer()">×</span>
             </div>
             <!-- 播放器容器 -->
@@ -138,16 +158,16 @@
     </div>
 
     <script>
-        // 你的 GAS 部署網址
+        // 你的 GAS 部署網址 (維持不變)
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbzgMHyuI84SYoEix1g7klIDXOrxQHdzmyk1WTcYKJ8FqvTWVW0B3XhXgIeouFPcVriP/exec';
         
         let allVideosData = [];
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 此系統受存取權限保護`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 此系統受Google所保護`;
 
-            // 開場動畫邏輯
+            // 開場動畫邏輯 (確保顯示 5 秒後切換)
             setTimeout(() => {
                 const splash = document.getElementById('splash');
                 splash.style.opacity = '0';
@@ -161,7 +181,7 @@
             fetchVideos();
         };
 
-        // 防護設定：禁用右鍵與快捷鍵 (防盜機制)
+        // 防護設定：禁用右鍵與常用開發者快捷鍵 (防盜機制)
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || (e.ctrlKey && ['s', 'u', 'c', 'i', 'j'].includes(e.key.toLowerCase()))) {
@@ -229,20 +249,36 @@
             const modal = document.getElementById('player-modal');
             const iframeBox = document.getElementById('iframe-box');
             
-            // 寫入 Google Drive Preview Iframe
+            // 使用官方預覽連結確保最高相容性
             iframeBox.innerHTML = `<iframe src="https://drive.google.com/file/d/${fileId}/preview" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
             
             modal.style.display = 'flex';
         }
 
-        // 關閉播放器並清除影片來源 (停止背景播放聲音)
+        // 關閉播放器並徹底銷毀影片節點
         function closePlayer() {
             const modal = document.getElementById('player-modal');
             const iframeBox = document.getElementById('iframe-box');
             
             modal.style.display = 'none';
-            // 清空 HTML 確保影片停止播放與釋放記憶體
+            // 清空 HTML 確保影片完全停止播放並回到初始狀態
             iframeBox.innerHTML = ''; 
+        }
+
+        // 無縫返回首頁 (重置視圖功能)
+        function resetView() {
+            // 關閉可能開啟的播放器
+            closePlayer();
+            
+            // 清空搜尋欄
+            const searchInput = document.getElementById('searchInput');
+            searchInput.value = '';
+            
+            // 重新顯示所有影片
+            filterVideos();
+            
+            // 畫面平滑捲動回到最上方
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>
