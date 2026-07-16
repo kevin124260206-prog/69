@@ -50,7 +50,6 @@
            ========================================= */
         #app { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
         
-        /* 乾淨的首頁標題 (已移除橘色 Logo) */
         header { text-align: center; margin: 20px 0 30px 0; cursor: pointer; transition: opacity 0.3s; }
         header:hover { opacity: 0.8; }
         header h1 { font-size: 28px; letter-spacing: 2px; margin: 0; color: #fff; }
@@ -79,7 +78,6 @@
             background: #000; z-index: 20000; flex-direction: column;
         }
 
-        /* 頂部控制列：左側關閉、右側全螢幕 */
         .top-bar {
             height: 55px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.8); z-index: 10;
@@ -94,7 +92,6 @@
         .close-btn { background: #ff4500; border: none; }
         .close-btn:active { background: #d63a00; }
 
-        /* 影片主舞台 */
         .video-stage { flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
         .video-stage iframe { width: 100%; height: 100%; border: none; }
 
@@ -111,20 +108,15 @@
 
     <!-- 網站主介面 -->
     <div id="app">
-        <!-- 點擊標題可重置回到首頁 (已移除橘色圓圈) -->
         <header onclick="resetView()" title="返回首頁">
             <h1>施柏謙影音系統</h1>
         </header>
 
-        <!-- 搜尋列 -->
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="搜尋影片名稱..." onkeyup="filterVideos()">
         </div>
         
-        <!-- 載入狀態 -->
         <div id="loading-status">正在安全載入影音資料，請稍候...</div>
-        
-        <!-- 影片網格 -->
         <div class="video-container" id="videoGrid"></div>
         
         <footer><p id="copyright"></p></footer>
@@ -133,29 +125,24 @@
     <!-- 專業版 App 播放器 -->
     <div id="player-modal">
         <div class="top-bar">
-            <!-- 左上角關閉按鈕 -->
             <button class="btn close-btn" onclick="closePlayer()">✕ 關閉</button>
-            <!-- 右上角全螢幕按鈕 -->
             <button class="btn" onclick="toggleFS()">⛶ 全螢幕</button>
         </div>
-        <div class="video-stage" id="stage">
-            <!-- 影片 iframe 將動態注入於此 -->
-        </div>
+        <div class="video-stage" id="stage"></div>
     </div>
 
     <script>
         // ==========================================
-        // ⚠️ 必填區：你的 GAS URL
+        // ⚠️ 必填區：替換為你步驟一中重新部署後得到的 GAS URL
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzgMHyuI84SYoEix1g7klIDXOrxQHdzmyk1WTcYKJ8FqvTWVW0B3XhXgIeouFPcVriP/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx6TVaiXc0DV27mkHX5ReK8R9T0ocY5gxeTuKiOkls7BelgnSjG9E_d6GnfnnlXmvAo/exec';
         
         let allVideosData = [];
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 受Google技術保護`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 受安全沙盒技術保護`;
 
-            // 執行 5 秒開場動畫
             setTimeout(() => {
                 const splash = document.getElementById('splash');
                 splash.style.opacity = '0';
@@ -165,7 +152,6 @@
                 }, 500);
             }, 5000);
 
-            // 在背景抓取影片資料
             fetchVideos();
         };
 
@@ -198,7 +184,7 @@
                 }
             } catch(err) { 
                 console.error("讀取失敗:", err);
-                document.getElementById('loading-status').innerText = '載入失敗，請確認 GAS 網址是否正確。'; 
+                document.getElementById('loading-status').innerText = '載入失敗，請確認 GAS 網址與雲端共用權限設定。'; 
             }
         }
 
@@ -220,10 +206,11 @@
                 card.className = 'video-card';
                 card.onclick = () => openPlayer(video.secureToken); 
                 
+                // 預防無預覽圖的情況
                 const thumbSrc = video.thumbnail ? video.thumbnail : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
                 card.innerHTML = `
-                    <img src="${thumbSrc}" class="thumbnail" alt="預覽圖" loading="lazy">
+                    <img src="${thumbSrc}" class="thumbnail" alt="預覽圖" loading="lazy" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='">
                     <div class="video-info">
                         <h3 class="video-title">${video.name}</h3>
                         <p style="margin:0; font-size: 13px; color: #888;">${video.date}</p>
@@ -233,13 +220,15 @@
             });
         }
 
-        // 開啟播放器（已優化全螢幕權限傳遞）
+        // 開啟播放器（還原解密 Token & 允許全螢幕播放）
         function openPlayer(token) {
             const stage = document.getElementById('stage');
             const modal = document.getElementById('player-modal');
+            
+            // 完美還原出真實的 Google Drive File ID
             const fileId = atob(token);
             
-            // 安全注入 iframe，完整支援全螢幕 (含 Safari 與多種瀏覽器前綴)、自動播放、畫中畫
+            // 🌟 移除 sandbox 限制（防止 Google 播放器驗證被阻擋），並補齊跨瀏覽器的全螢幕特許宣告
             stage.innerHTML = `
                 <iframe 
                     src="https://drive.google.com/file/d/${fileId}/preview" 
@@ -247,12 +236,11 @@
                     allow="autoplay; fullscreen; picture-in-picture"
                     allowfullscreen="true"
                     webkitallowfullscreen="true"
-                    mozallowfullscreen="true"
-                    sandbox="allow-scripts allow-same-origin allow-forms">
+                    mozallowfullscreen="true">
                 </iframe>`;
             
             modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // 防止背景滾動
+            document.body.style.overflow = 'hidden'; // 防止主背景滾動
         }
 
         // 關閉播放器
@@ -260,6 +248,7 @@
             const modal = document.getElementById('player-modal');
             const stage = document.getElementById('stage');
             
+            // 如果在全螢幕下關閉，主動退回標準視窗
             if (document.fullscreenElement || document.webkitFullscreenElement) {
                 if (document.exitFullscreen) {
                     document.exitFullscreen().catch(() => {});
@@ -273,7 +262,7 @@
             document.body.style.overflow = 'auto'; // 恢復背景滾動
         }
 
-        // 切換全螢幕（已加入完整的 Webkit/Safari 前綴支援）
+        // 全螢幕功能控制支援 (支援 Safari / iOS Chrome / Edge)
         function toggleFS() {
             const modal = document.getElementById('player-modal');
             
@@ -281,11 +270,11 @@
                 if (modal.requestFullscreen) {
                     modal.requestFullscreen();
                 } else if (modal.webkitRequestFullscreen) {
-                    modal.webkitRequestFullscreen(); // 支援 Safari / iOS Chrome
+                    modal.webkitRequestFullscreen();
                 } else if (modal.mozRequestFullScreen) {
-                    modal.mozRequestFullScreen(); // 支援舊版 Firefox
+                    modal.mozRequestFullScreen();
                 } else if (modal.msRequestFullscreen) {
-                    modal.msRequestFullscreen(); // 支援舊版 IE/Edge
+                    modal.msRequestFullscreen();
                 }
             } else {
                 if (document.exitFullscreen) {
