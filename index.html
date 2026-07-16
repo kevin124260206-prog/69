@@ -147,13 +147,13 @@
         // ==========================================
         // ⚠️ 必填區：你的 GAS URL
         // ==========================================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzR9uAV3jA2ViwOM7MBNZH0oDPGNiR8vKm_uD8KE45xWY3ODhJ-HtxkYtJKciKS8q0L/exec';
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzgMHyuI84SYoEix1g7klIDXOrxQHdzmyk1WTcYKJ8FqvTWVW0B3XhXgIeouFPcVriP/exec';
         
         let allVideosData = [];
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 受安全沙盒技術保護`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 受Google技術保護`;
 
             // 執行 5 秒開場動畫
             setTimeout(() => {
@@ -233,17 +233,21 @@
             });
         }
 
-        // 開啟播放器
+        // 開啟播放器（已優化全螢幕權限傳遞）
         function openPlayer(token) {
             const stage = document.getElementById('stage');
             const modal = document.getElementById('player-modal');
             const fileId = atob(token);
             
-            // 安全注入 iframe，封鎖彈出視窗
+            // 安全注入 iframe，完整支援全螢幕 (含 Safari 與多種瀏覽器前綴)、自動播放、畫中畫
             stage.innerHTML = `
                 <iframe 
                     src="https://drive.google.com/file/d/${fileId}/preview" 
-                    allow="autoplay"
+                    style="width: 100%; height: 100%; border: none;"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowfullscreen="true"
+                    webkitallowfullscreen="true"
+                    mozallowfullscreen="true"
                     sandbox="allow-scripts allow-same-origin allow-forms">
                 </iframe>`;
             
@@ -256,8 +260,12 @@
             const modal = document.getElementById('player-modal');
             const stage = document.getElementById('stage');
             
-            if (document.fullscreenElement) {
-                document.exitFullscreen().catch(() => {});
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
             }
             
             modal.style.display = 'none';
@@ -265,14 +273,30 @@
             document.body.style.overflow = 'auto'; // 恢復背景滾動
         }
 
-        // 切換全螢幕
+        // 切換全螢幕（已加入完整的 Webkit/Safari 前綴支援）
         function toggleFS() {
             const modal = document.getElementById('player-modal');
-            if (!document.fullscreenElement) {
-                if (modal.requestFullscreen) modal.requestFullscreen();
-                else if (modal.webkitRequestFullscreen) modal.webkitRequestFullscreen();
+            
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (modal.requestFullscreen) {
+                    modal.requestFullscreen();
+                } else if (modal.webkitRequestFullscreen) {
+                    modal.webkitRequestFullscreen(); // 支援 Safari / iOS Chrome
+                } else if (modal.mozRequestFullScreen) {
+                    modal.mozRequestFullScreen(); // 支援舊版 Firefox
+                } else if (modal.msRequestFullscreen) {
+                    modal.msRequestFullscreen(); // 支援舊版 IE/Edge
+                }
             } else {
-                if (document.exitFullscreen) document.exitFullscreen();
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
             }
         }
 
