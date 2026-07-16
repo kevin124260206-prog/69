@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>施柏謙影音</title>
+    <style>
+        /* 系統基礎與防護 (禁止反白選取) */
+        body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; user-select: none; }
+        
+        /* 1. 開場動畫 (三角形彈跳 3 次) */
+        #splash { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s; }
+        .triangle {
+            width: 0; height: 0;
+            border-left: 60px solid transparent; border-right: 60px solid transparent; border-bottom: 104px solid #d32f2f;
+            animation: jump 0.6s ease-in-out 3;
+        }
+        @keyframes jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-60px); } }
+
+        /* 2. 主系統與搜尋列 */
+        #app { display: none; padding: 20px; max-width: 1600px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { color: #222; margin: 0; letter-spacing: 2px; }
+        .search-bar { text-align: center; margin-bottom: 30px; }
+        .search-bar input { padding: 12px 24px; width: 80%; max-width: 500px; border-radius: 30px; border: 1px solid #ccc; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        /* 3. 響應式網格佈局 */
+        .video-container { display: grid; gap: 20px; }
+        /* 手機版預設：1 行 1 欄 */
+        grid-template-columns: 1fr; 
+        /* 電腦版：1 行 5 欄 */
+        @media (min-width: 1024px) { .video-container { grid-template-columns: repeat(5, 1fr); } }
+
+        /* 4. 影片卡片與預覽縮圖 */
+        .video-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s; }
+        .video-card:hover { transform: translateY(-5px); }
+        .thumbnail { width: 100%; aspect-ratio: 16/9; background-color: #000; object-fit: cover; display: block; }
+        .video-info { padding: 15px; }
+        .video-title { margin: 0 0 8px 0; font-size: 16px; color: #111; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .video-date { margin: 0; font-size: 13px; color: #888; }
+
+        /* 5. 播放器容器與跟隨浮水印 */
+        #player-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 10000; justify-content: center; align-items: center; }
+        .player-wrapper { position: relative; width: 90%; max-width: 1000px; background: #000; border-radius: 8px; overflow: hidden; }
+        .close-btn { position: absolute; top: 10px; right: 15px; color: #fff; font-size: 30px; cursor: pointer; z-index: 101; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        
+        /* 浮水印設定 (永遠疊加在影片畫面上) */
+        .watermark { position: absolute; bottom: 20px; right: 20px; color: rgba(255,255,255,0.5); font-size: 20px; font-weight: bold; letter-spacing: 2px; pointer-events: none; z-index: 100; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+
+        /* 6. 頁尾版權 */
+        footer { text-align: center; margin-top: 60px; padding: 20px; color: #999; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div id="splash"><div class="triangle"></div></div>
+
+    <div id="app">
+        <header><h1>施柏謙影音</h1></header>
+        
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="在雲端硬碟中搜尋影片..." onkeyup="filterVideos()">
+        </div>
+
+        <div class="video-container" id="videoGrid"></div>
+
+        <footer><p id="copyright"></p></footer>
+    </div>
+
+    <div id="player-modal">
+        <div class="player-wrapper">
+            <span class="close-btn" onclick="closePlayer()">×</span>
+            <iframe id="video-iframe" width="100%" style="aspect-ratio: 16/9; border:none;" allowfullscreen></iframe>
+            <div class="watermark">施柏謙影音</div>
+        </div>
+    </div>
+
+    <script>
+        // ★★★ 請將引號內的網址替換為你部署的 GAS 網址 ★★★
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx2mLmcPRr9NaYjJAWsQbgsgJU1aObCThmINdNZue8Hptp88eeUbr7ht80-P-vD45uP/exec';
+        let allVideosData = []; // 存放從雲端拉取的影片資料
+
+        window.onload = () => {
+            // 動態產生版權年份
+            const currentYear = new Date().getFullYear();
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有`;
+
+            // 控制開場動畫：等待跳動動畫結束後淡出
+            setTimeout(() => {
+                const splash = document.getElementById('splash');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                }, 500);
+            }, 1800); // 配合 CSS 跳動 3 次的時間
+
+            // 啟動資料擷取
+            fetchVideos();
+            
+            // 設定每 5 秒自動搜尋一次雲端硬碟更新
+            setInterval(fetchVideos, 5000);
+        };
+
+        // 防護設定：禁用右鍵與開發者工具快捷鍵 (防止輕易查看源碼或下載)
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && ['s', 'u', 'c'].includes(e.key.toLowerCase()))) {
+                e.preventDefault();
+            }
+        });
+
+        // 去後端抓取資料
+        async function fetchVideos() {
+            if(!GAS_URL.startsWith('http')) return; 
+            try {
+                const res = await fetch(GAS_URL);
+                const data = await res.json();
+                
+                // 比對資料，只有當雲端硬碟真的有新增或改名時，才重新渲染畫面
+                if(JSON.stringify(data) !== JSON.stringify(allVideosData)) {
+                    allVideosData = data;
+                    filterVideos();
+                }
+            } catch(err) { console.error("同步失敗，請檢查網址或權限", err); }
+        }
+
+        // 關鍵字搜尋與渲染影片卡片
+        function filterVideos() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const grid = document.getElementById('videoGrid');
+            grid.innerHTML = ''; 
+
+            const filtered = allVideosData.filter(v => v.name.toLowerCase().includes(keyword));
+
+            filtered.forEach(video => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => openPlayer(video.id); // 點擊開啟播放器
+                
+                // 產生預覽縮圖
+                const thumbSrc = video.thumbnail ? video.thumbnail : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+
+                card.innerHTML = `
+                    <img src="${thumbSrc}" class="thumbnail" alt="影片預覽圖" loading="lazy">
+                    <div class="video-info">
+                        <h3 class="video-title">${video.name}</h3>
+                        <p class="video-date">上傳日期: ${video.date}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 開啟播放器與浮水印疊加
+        function openPlayer(fileId) {
+            const modal = document.getElementById('player-modal');
+            const iframe = document.getElementById('video-iframe');
+            
+            // 將雲端硬碟的預覽連結放入 iframe，外面罩著你的「施柏謙影音」浮水印
+            iframe.src = `https://drive.google.com/file/d/${fileId}/preview`;
+            modal.style.display = 'flex';
+        }
+
+        // 關閉播放器
+        function closePlayer() {
+            const modal = document.getElementById('player-modal');
+            const iframe = document.getElementById('video-iframe');
+            iframe.src = ''; // 清空 src 以停止背景繼續播放
+            modal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
