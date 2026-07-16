@@ -106,7 +106,7 @@
         }
 
         /* =========================================
-           3. 播放器模態框與「安全防護遮罩」
+           3. 播放器模態框與「安全防護遮罩層」
            ========================================= */
         #player-modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
@@ -117,18 +117,36 @@
         .iframe-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background-color: #000; }
         .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-        /* 【核心安全修正：透明防護遮罩】蓋在影片右上角外連按鈕的上方，防止任何人點擊外連下載 */
-        .video-shield-topright {
+        /* 【核心安全防護層】覆蓋於整個 iframe 最上層，但不攔截點擊操作，唯獨遮蔽特定區域 */
+        .player-overlay {
             position: absolute;
-            top: 0;
-            right: 0;
-            width: 80px;    /* 寬度足以蓋住外連按鈕 */
-            height: 80px;   /* 高度足以蓋住外連按鈕 */
-            background: transparent; /* 完全透明無感 */
-            z-index: 100;   /* 高於 iframe 層級 */
-            cursor: default; /* 游標保持一般箭頭，不顯示超連結手型 */
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; /* 讓滑鼠點擊直接穿透，不會干擾影片點擊播放 */
+            z-index: 100;
         }
 
+        /* 右上角物理遮罩（不允許滑鼠穿透點擊，徹底封死外連按鈕） */
+        .video-shield-topright {
+            position: absolute;
+            top: 0; right: 0;
+            width: 80px; height: 80px;
+            background: transparent;
+            pointer-events: auto; /* 恢復滑鼠攔截，使用者在此區域內無法點到 iframe 內部的外連鈕 */
+            cursor: default;
+        }
+
+        /* 【雙重狀態浮水印】非全螢幕與全螢幕時皆完美浮貼，支援穿透點擊 */
+        .watermark { 
+            position: absolute; 
+            bottom: 25px; right: 30px; 
+            color: rgba(255, 255, 255, 0.25); 
+            font-size: 20px; font-weight: bold; 
+            letter-spacing: 3px; 
+            pointer-events: none; /* 允許點擊穿透，不干擾時間軸或音量調整 */
+            z-index: 101; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9); 
+        }
+        
         /* 【全球最高層級返回按鈕】絕對置頂，不再被 iframe 覆蓋，100% 可點擊 */
         .close-global-btn { 
             position: fixed; top: 20px; right: 20px; 
@@ -141,9 +159,6 @@
             font-weight: bold;
         }
         .close-global-btn:hover { transform: scale(1.1); background: #ff6347; }
-        
-        /* 浮水印 */
-        .watermark { position: absolute; bottom: 20px; right: 25px; color: rgba(255,255,255,0.3); font-size: 20px; font-weight: bold; letter-spacing: 3px; pointer-events: none; z-index: 99; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); }
         
         footer { text-align: center; margin-top: 60px; padding: 20px; color: #555; font-size: 14px; }
     </style>
@@ -158,7 +173,7 @@
 
     <!-- 網站主介面 -->
     <div id="app">
-        <!-- 點擊 Logo 可重置回到首頁初始狀態 -->
+        <!-- 點擊 Logo 可重置回到首頁 -->
         <header onclick="resetView()" title="返回首頁">
             <div class="logo-circle">施</div>
             <h2>施柏謙影音系統</h2>
@@ -181,12 +196,14 @@
         <div class="close-global-btn" onclick="closePlayer()" title="關閉返回">×</div>
         
         <div class="player-wrapper">
-            <!-- 【防外連安全防護盾】直接覆蓋於 iframe 之上 -->
-            <div class="video-shield-topright"></div>
-            
             <!-- 播放器容器 (動態注入與銷毀) -->
             <div class="iframe-container" id="iframe-box"></div>
-            <div class="watermark">施柏謙影音</div>
+            
+            <!-- 【防外連＋全螢幕雙重浮水印安全覆蓋層】 -->
+            <div class="player-overlay">
+                <div class="video-shield-topright"></div>
+                <div class="watermark">施柏謙影音</div>
+            </div>
         </div>
     </div>
 
@@ -200,7 +217,7 @@
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 影片連結受底層編碼與防外連技術保護`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 影片連結受底層編碼與全螢幕浮水印保護`;
 
             // 執行 5 秒開場動畫
             setTimeout(() => {
@@ -212,7 +229,7 @@
                 }, 500);
             }, 5000);
 
-            // 動畫期間同步在背景抓取影片資料
+            // 在背景抓取影片資料
             fetchVideos();
         };
 
@@ -244,7 +261,7 @@
                 }
             } catch(err) { 
                 console.error("讀取失敗:", err);
-                document.getElementById('loading-status').innerText = '載入失敗，請確認 GAS 網址是否正確且已發布新版本，並確保雲端資料夾權限為「任何人皆可檢視」。'; 
+                document.getElementById('loading-status').innerText = '載入失敗，請確認 GAS 網址是否正確且已發布新版本。'; 
             }
         }
 
@@ -301,15 +318,14 @@
             }
         }
 
-        // 徹底關閉播放器：銷毀元件，100% 成功返回
+        // 徹底關閉播放器
         function closePlayer() {
             const modal = document.getElementById('player-modal');
             const iframeBox = document.getElementById('iframe-box');
             
             modal.style.display = 'none';
-            // 將 Iframe 徹底從網頁拔除，強制終止影片播放與緩存
             iframeBox.innerHTML = ''; 
-            document.body.style.overflow = 'auto'; // 解除鎖定，恢復滾動
+            document.body.style.overflow = 'auto'; // 解除鎖定
         }
 
         // 點擊上方 LOGO 重置頁面
