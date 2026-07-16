@@ -106,7 +106,7 @@
         }
 
         /* =========================================
-           3. 播放器模態框與「絕對返回」按鈕
+           3. 播放器模態框與「安全防護遮罩」
            ========================================= */
         #player-modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
@@ -116,6 +116,18 @@
         .player-wrapper { position: relative; width: 90%; max-width: 1100px; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 50px rgba(0,0,0,0.9); }
         .iframe-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background-color: #000; }
         .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+        /* 【核心安全修正：透明防護遮罩】蓋在影片右上角外連按鈕的上方，防止任何人點擊外連下載 */
+        .video-shield-topright {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;    /* 寬度足以蓋住外連按鈕 */
+            height: 80px;   /* 高度足以蓋住外連按鈕 */
+            background: transparent; /* 完全透明無感 */
+            z-index: 100;   /* 高於 iframe 層級 */
+            cursor: default; /* 游標保持一般箭頭，不顯示超連結手型 */
+        }
 
         /* 【全球最高層級返回按鈕】絕對置頂，不再被 iframe 覆蓋，100% 可點擊 */
         .close-global-btn { 
@@ -165,10 +177,13 @@
 
     <!-- 劇院播放器模態框 -->
     <div id="player-modal">
-        <!-- 獨立全域返回按鈕 -->
-        <div class="close-global-btn" onclick="closePlayer()" title="關閉並返回">×</div>
+        <!-- 頂層全局返回鈕 -->
+        <div class="close-global-btn" onclick="closePlayer()" title="關閉返回">×</div>
         
         <div class="player-wrapper">
+            <!-- 【防外連安全防護盾】直接覆蓋於 iframe 之上 -->
+            <div class="video-shield-topright"></div>
+            
             <!-- 播放器容器 (動態注入與銷毀) -->
             <div class="iframe-container" id="iframe-box"></div>
             <div class="watermark">施柏謙影音</div>
@@ -185,7 +200,7 @@
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 此系統受Google保護`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 影片連結受底層編碼與防外連技術保護`;
 
             // 執行 5 秒開場動畫
             setTimeout(() => {
@@ -249,7 +264,6 @@
             filtered.forEach(video => {
                 const card = document.createElement('div');
                 card.className = 'video-card';
-                // 點擊時傳遞的是「加密的亂碼 Token」，而非真實 ID
                 card.onclick = () => openPlayer(video.secureToken); 
                 
                 const thumbSrc = video.thumbnail ? video.thumbnail : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
