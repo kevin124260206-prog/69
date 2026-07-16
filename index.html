@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>施柏謙影音系統 - 安全防護版</title>
+    <title>施柏謙影音系統 - 頂級防禦版</title>
     
     <style>
         /* =========================================
@@ -77,7 +77,7 @@
         .video-title { margin: 0 0 8px 0; font-size: 18px; line-height: 1.4; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #fff; }
         
         /* =========================================
-           3. 專業級播放器模態框
+           3. 專業級播放器模態框與裁剪防禦防護
            ========================================= */
         #player-modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
@@ -85,7 +85,7 @@
         }
 
         .top-bar {
-            height: 55px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px;
+            height: 55px; background: #000; display: flex; align-items: center; justify-content: flex-start; padding: 0 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.8); z-index: 10;
         }
         
@@ -98,8 +98,65 @@
         .close-btn { background: #ff4500; border: none; }
         .close-btn:active { background: #d63a00; }
 
-        .video-stage { flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
-        .video-stage iframe { width: 100%; height: 100%; border: none; }
+        /* 🚀 關鍵安全裁剪容器：隱藏 Google Drive 頂部工具列 */
+        .video-stage { 
+            flex: 1; 
+            position: relative; 
+            background: #000; 
+            overflow: hidden; /* 裁剪超出範圍的內容 */
+        }
+        
+        /* 將 iframe 往上頂 60px，並增加 60px 高度，使頂部的下載與彈出按鈕移出可見區域 */
+        .video-stage iframe { 
+            position: absolute;
+            top: -60px; 
+            left: 0;
+            width: 100%; 
+            height: calc(100% + 60px); 
+            border: none; 
+        }
+
+        /* 🚀 關鍵防懸停防干擾玻璃層 */
+        .video-shield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            background: rgba(0,0,0,0.01); /* 微乎其微的背景，阻擋滑鼠穿透 */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 自訂防禦播放按鈕（取代 Google 內建的彩色按鈕） */
+        .custom-play-btn {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 69, 0, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.6);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .custom-play-btn::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 15px 0 15px 25px;
+            border-color: transparent transparent transparent #ffffff;
+            margin-left: 6px;
+        }
+        .video-shield:hover .custom-play-btn {
+            transform: scale(1.1);
+            background: rgba(255, 140, 0, 1);
+        }
 
         footer { text-align: center; margin-top: 40px; padding: 20px; color: #555; font-size: 13px; }
         
@@ -137,10 +194,12 @@
     <!-- 專業版 App 播放器 -->
     <div id="player-modal">
         <div class="top-bar">
+            <!-- 僅保留關閉按鈕，拿掉全螢幕按鈕 -->
             <button class="btn close-btn" onclick="closePlayer()">✕ 關閉</button>
-            <button class="btn" onclick="toggleFS()">⛶ 全螢幕</button>
         </div>
-        <div class="video-stage" id="stage"></div>
+        <div class="video-stage" id="stage-container">
+            <!-- 遮罩與實體 iframe 會動態渲染至此 -->
+        </div>
     </div>
 
     <script>
@@ -160,7 +219,7 @@
         // 1. 禁用右鍵選單
         document.addEventListener('contextmenu', e => e.preventDefault());
         
-        // 2. 禁用 F12, Ctrl+Shift+I, Ctrl+U, Ctrl+S 等快捷鍵
+        // 2. 禁用開發者工具快捷鍵
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || 
                (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
@@ -176,7 +235,6 @@
             const before = new Date().getTime();
             (function() { debugger; })();
             const after = new Date().getTime();
-            // 如果執行時間過長，代表 debugger 停住了（開發者工具被打開）
             if (after - before > 100) {
                 document.getElementById('defense-overlay').style.display = 'flex';
                 document.getElementById('app').style.display = 'none';
@@ -189,7 +247,7 @@
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 核心軍規防護中`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 `;
 
             // 動態開場動畫判定
             setTimeout(() => {
@@ -278,35 +336,33 @@
             container.appendChild(fallback);
         }
 
-        // 🔓 核心解密：反向還原 Google Drive ID
+        // 🔓 反向解密還原 Google Drive ID
         function decodeSecureToken(token) {
-            // 1. 將字元位移還原 (-1)
             let chars = token.split('');
             for (let i = 0; i < chars.length; i++) {
                 chars[i] = String.fromCharCode(chars[i].charCodeAt(0) - 1);
             }
             let b64 = chars.join('');
-            
-            // 2. Base64 解碼
             return decodeURIComponent(escape(atob(b64)));
         }
 
         function openPlayer(token) {
-            const stage = document.getElementById('stage');
+            const stageContainer = document.getElementById('stage-container');
             const modal = document.getElementById('player-modal');
             
             try {
-                // 執行反向解密，獲取真實 File ID
                 const fileId = decodeSecureToken(token);
                 
-                stage.innerHTML = `
+                // 渲染包含安全裁剪的 iframe 與 防干擾遮罩
+                stageContainer.innerHTML = `
+                    <div class="video-shield" id="videoShield" onclick="startVideoPlay()">
+                        <div class="custom-play-btn"></div>
+                    </div>
                     <iframe 
+                        id="securePlayerFrame"
                         src="https://drive.google.com/file/d/${fileId}/preview" 
-                        style="width: 100%; height: 100%; border: none;"
-                        allow="autoplay; fullscreen; picture-in-picture"
-                        allowfullscreen="true"
-                        webkitallowfullscreen="true"
-                        mozallowfullscreen="true">
+                        allow="autoplay; fullscreen"
+                        allowfullscreen="true">
                     </iframe>`;
                 
                 modal.style.display = 'flex';
@@ -316,43 +372,21 @@
             }
         }
 
-        function closePlayer() {
-            const modal = document.getElementById('player-modal');
-            const stage = document.getElementById('stage');
-            
-            if (document.fullscreenElement || document.webkitFullscreenElement) {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen().catch(() => {});
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
+        // 點擊「自訂播放鍵」後，移除遮罩，使用戶能與內嵌播放器進行正常互動
+        function startVideoPlay() {
+            const shield = document.getElementById('videoShield');
+            if (shield) {
+                shield.style.display = 'none';
             }
-            
-            modal.style.display = 'none';
-            stage.innerHTML = ''; 
-            document.body.style.overflow = 'auto'; 
         }
 
-        function toggleFS() {
+        function closePlayer() {
             const modal = document.getElementById('player-modal');
+            const stageContainer = document.getElementById('stage-container');
             
-            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                if (modal.requestFullscreen) {
-                    modal.requestFullscreen();
-                } else if (modal.webkitRequestFullscreen) {
-                    modal.webkitRequestFullscreen();
-                } else if (modal.mozRequestFullScreen) {
-                    modal.mozRequestFullScreen();
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.mozCancelFullScreen) {
-                    document.mozCancelFullScreen();
-                }
-            }
+            modal.style.display = 'none';
+            stageContainer.innerHTML = ''; 
+            document.body.style.overflow = 'auto'; 
         }
 
         function resetView() {
