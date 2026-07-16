@@ -50,7 +50,6 @@
            ========================================= */
         #app { display: none; padding: 30px; max-width: 1600px; margin: 0 auto; }
         
-        /* 頂部 LOGO 與返回重置鈕 */
         header { text-align: center; margin: 20px 0 40px 0; cursor: pointer; transition: opacity 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         header:hover { opacity: 0.8; }
         .logo-circle {
@@ -65,14 +64,12 @@
         header:hover .logo-circle { transform: scale(1.1) rotate(10deg); }
         header h2 { font-size: 36px; letter-spacing: 2px; margin: 0; }
         
-        /* 搜尋列 */
         .search-bar { text-align: center; margin-bottom: 20px; }
         .search-bar input { padding: 18px 30px; width: 80%; max-width: 700px; border-radius: 50px; border: none; background: #222; color: #fff; font-size: 18px; outline: none; box-shadow: inset 0 2px 8px rgba(0,0,0,0.6); transition: box-shadow 0.3s; }
         .search-bar input:focus { box-shadow: inset 0 2px 8px rgba(0,0,0,0.8), 0 0 15px rgba(255, 69, 0, 0.5); }
         
         #loading-status { text-align: center; color: #aaa; margin-bottom: 30px; font-size: 16px; letter-spacing: 1px; }
 
-        /* 影片排版網格 */
         .video-container { display: grid; gap: 40px; grid-template-columns: 1fr; }
         @media (min-width: 768px) { .video-container { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1024px) { .video-container { grid-template-columns: repeat(3, 1fr); } }
@@ -80,14 +77,12 @@
         .video-card { background: #1a1a1a; border-radius: 16px; overflow: hidden; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; position: relative; }
         .video-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.6); }
         
-        /* 縮圖設計 */
         .thumbnail { width: 100%; height: 280px; object-fit: cover; background: #000; display: block; transition: opacity 0.3s; }
         .video-card:hover .thumbnail { opacity: 0.6; }
         
         .video-info { padding: 20px; }
         .video-title { margin: 0 0 12px 0; font-size: 22px; line-height: 1.4; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #fff; }
         
-        /* 懸停播放按鈕 */
         .card-play-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 60px; height: 60px; border-radius: 50%;
@@ -113,52 +108,95 @@
             background: rgba(0,0,0,0.98); z-index: 20000; 
             justify-content: center; align-items: center; backdrop-filter: blur(8px); 
         }
-        .player-wrapper { position: relative; width: 90%; max-width: 1100px; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 50px rgba(0,0,0,0.9); }
+        
+        /* 播放視窗容器 */
+        .player-wrapper { 
+            position: relative; 
+            width: 90%; 
+            max-width: 1100px; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            background: #000; 
+            box-shadow: 0 10px 50px rgba(0,0,0,0.9); 
+        }
+        
+        /* 當我們自訂全螢幕時，強制使播放視窗放大至 100% 滿版 */
+        .player-wrapper:fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: none !important;
+            border-radius: 0 !important;
+        }
+        
         .iframe-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background-color: #000; }
+        
+        /* 如果進入全螢幕狀態，容器高度需自動填滿 */
+        .player-wrapper:fullscreen .iframe-container {
+            padding-bottom: 0;
+            height: 100vh;
+        }
         .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
         /* 【核心安全防護層】覆蓋於整個 iframe 最上層，但不攔截點擊操作，唯獨遮蔽特定區域 */
         .player-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; /* 讓滑鼠點擊直接穿透，不會干擾影片點擊播放 */
+            pointer-events: none; /* 讓滑鼠點擊直接穿透，不會干擾影片播放與進度條調整 */
             z-index: 100;
         }
 
-        /* 右上角物理遮罩（不允許滑鼠穿透點擊，徹底封死外連按鈕） */
+        /* 右上角物理遮罩（不允許滑鼠穿透點擊，徹底封鎖外連按鈕） */
         .video-shield-topright {
             position: absolute;
             top: 0; right: 0;
-            width: 80px; height: 80px;
+            width: 100px; height: 100px; /* 加寬防護面積 */
             background: transparent;
-            pointer-events: auto; /* 恢復滑鼠攔截，使用者在此區域內無法點到 iframe 內部的外連鈕 */
+            pointer-events: auto; /* 恢復滑鼠阻擋，使用者在此區域內無法點到 iframe 內部的外連鈕 */
             cursor: default;
         }
 
-        /* 【雙重狀態浮水印】非全螢幕與全螢幕時皆完美浮貼，支援穿透點擊 */
+        /* 【雙重狀態浮水印】非全螢幕與自訂全螢幕時皆完美浮貼，支援穿透點擊 */
         .watermark { 
             position: absolute; 
-            bottom: 25px; right: 30px; 
-            color: rgba(255, 255, 255, 0.25); 
-            font-size: 20px; font-weight: bold; 
-            letter-spacing: 3px; 
-            pointer-events: none; /* 允許點擊穿透，不干擾時間軸或音量調整 */
+            bottom: 30px; right: 40px; 
+            color: rgba(255, 255, 255, 0.3); 
+            font-size: 24px; font-weight: bold; 
+            letter-spacing: 4px; 
+            pointer-events: none; /* 允許點擊穿透 */
             z-index: 101; 
             text-shadow: 2px 2px 4px rgba(0,0,0,0.9); 
         }
         
-        /* 【全球最高層級返回按鈕】絕對置頂，不再被 iframe 覆蓋，100% 可點擊 */
-        .close-global-btn { 
-            position: fixed; top: 20px; right: 20px; 
-            width: 50px; height: 50px; background: rgba(255, 69, 0, 0.9); 
-            border-radius: 50%; display: flex; justify-content: center; align-items: center; 
-            font-size: 32px; color: white; cursor: pointer; 
-            z-index: 999999; /* 極高層級 */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
-            transition: transform 0.2s, background 0.2s; 
-            font-weight: bold;
+        /* =========================================
+           4. 右上角「自訂安全控制控制列」（全域置頂）
+           ========================================= */
+        .control-group {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            display: flex;
+            gap: 15px;
+            z-index: 999999; /* 極高層級，防止被任何物件覆蓋 */
         }
+
+        .custom-control-btn {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; color: white; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: transform 0.2s, background 0.2s;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        /* 關閉返回鍵 */
+        .close-global-btn { background: rgba(255, 69, 0, 0.9); }
         .close-global-btn:hover { transform: scale(1.1); background: #ff6347; }
+
+        /* 安全全螢幕鍵 */
+        .fullscreen-global-btn { background: rgba(65, 105, 225, 0.9); font-size: 20px; }
+        .fullscreen-global-btn:hover { transform: scale(1.1); background: #5c7eff; }
         
         footer { text-align: center; margin-top: 60px; padding: 20px; color: #555; font-size: 14px; }
     </style>
@@ -192,14 +230,21 @@
 
     <!-- 劇院播放器模態框 -->
     <div id="player-modal">
-        <!-- 頂層全局返回鈕 -->
-        <div class="close-global-btn" onclick="closePlayer()" title="關閉返回">×</div>
         
-        <div class="player-wrapper">
+        <!-- 【自訂全域安全控制列】 -->
+        <div class="control-group">
+            <!-- 安全全螢幕按鈕 -->
+            <div id="fs-btn" class="custom-control-btn fullscreen-global-btn" onclick="toggleSecureFullscreen()" title="安全全螢幕 (F)">⛶</div>
+            <!-- 關閉按鈕 -->
+            <div class="custom-control-btn close-global-btn" onclick="closePlayer()" title="關閉返回 (ESC)">×</div>
+        </div>
+        
+        <!-- 播放器主包裝器 -->
+        <div class="player-wrapper" id="secure-wrapper">
             <!-- 播放器容器 (動態注入與銷毀) -->
             <div class="iframe-container" id="iframe-box"></div>
             
-            <!-- 【防外連＋全螢幕雙重浮水印安全覆蓋層】 -->
+            <!-- 【防外連＋全螢幕雙重安全覆蓋層】 -->
             <div class="player-overlay">
                 <div class="video-shield-topright"></div>
                 <div class="watermark">施柏謙影音</div>
@@ -217,7 +262,7 @@
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 影片連結受底層編碼與全螢幕浮水印保護`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 影片連結受底層編碼、沙盒保護與安全全螢幕技術保護`;
 
             // 執行 5 秒開場動畫
             setTimeout(() => {
@@ -238,6 +283,26 @@
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || (e.ctrlKey && ['s', 'u', 'c', 'i', 'j'].includes(e.key.toLowerCase()))) {
                 e.preventDefault();
+            }
+            // ESC 鍵關閉播放器
+            if (e.key === 'Escape') {
+                closePlayer();
+            }
+            // F 鍵切換安全全螢幕
+            if (e.key.toLowerCase() === 'f' && document.getElementById('player-modal').style.display === 'flex') {
+                toggleSecureFullscreen();
+            }
+        });
+
+        // 監聽全螢幕變化事件，更新按鈕圖示
+        document.addEventListener('fullscreenchange', () => {
+            const fsBtn = document.getElementById('fs-btn');
+            if (document.fullscreenElement) {
+                fsBtn.innerText = '❐';
+                fsBtn.title = '退出全螢幕 (F)';
+            } else {
+                fsBtn.innerText = '⛶';
+                fsBtn.title = '安全全螢幕 (F)';
             }
         });
 
@@ -261,7 +326,7 @@
                 }
             } catch(err) { 
                 console.error("讀取失敗:", err);
-                document.getElementById('loading-status').innerText = '載入失敗，請確認 GAS 網址是否正確且已發布新版本。'; 
+                document.getElementById('loading-status').innerText = '載入失敗，請確認 GAS 網址是否正確。'; 
             }
         }
 
@@ -305,27 +370,56 @@
             const iframeBox = document.getElementById('iframe-box');
             
             try {
-                // 將亂碼解密還原成真實的 Google Drive 檔案 ID
                 const fileId = atob(secureToken);
                 
-                // 動態生成 iframe 播放器
-                iframeBox.innerHTML = `<iframe src="https://drive.google.com/file/d/${fileId}/preview" allow="autoplay" allowfullscreen></iframe>`;
+                // 【核心防護更新】
+                // 1. 移除 allowfullscreen（閹割 Google 的原生全螢幕，防止防護層破裂）
+                // 2. 引入 sandbox（禁止彈出視窗：不給 allow-popups，使外連按鈕點擊時完全失效）
+                iframeBox.innerHTML = `
+                    <iframe 
+                        id="video-iframe"
+                        src="https://drive.google.com/file/d/${fileId}/preview" 
+                        allow="autoplay" 
+                        sandbox="allow-scripts allow-same-origin allow-forms">
+                    </iframe>`;
                 
                 modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden'; // 鎖定後方網頁，防止滾動
+                document.body.style.overflow = 'hidden'; 
             } catch (err) {
                 alert("播放初始化失敗，請重新載入網頁。");
             }
         }
 
-        // 徹底關閉播放器
+        // 切換安全全螢幕（將「影片+浮水印+遮罩」打包一起送入全螢幕，完美保留防護）
+        function toggleSecureFullscreen() {
+            const wrapper = document.getElementById('secure-wrapper');
+            if (!document.fullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.webkitRequestFullscreen) { /* Safari */
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) { /* IE11 */
+                    wrapper.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // 徹底關閉播放器並退出全螢幕
         function closePlayer() {
             const modal = document.getElementById('player-modal');
             const iframeBox = document.getElementById('iframe-box');
             
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+            
             modal.style.display = 'none';
             iframeBox.innerHTML = ''; 
-            document.body.style.overflow = 'auto'; // 解除鎖定
+            document.body.style.overflow = 'auto'; 
         }
 
         // 點擊上方 LOGO 重置頁面
