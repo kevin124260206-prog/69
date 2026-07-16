@@ -4,87 +4,144 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>施柏謙影音</title>
+    
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+
     <style>
-        /* 系統基礎與防護 (禁止反白選取) */
-        body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; user-select: none; }
+        /* 基礎防護與樣式 */
+        body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #121212; color: #fff; user-select: none; overflow-x: hidden; }
         
-        /* 1. 開場動畫 (三角形彈跳 3 次) */
-        #splash { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s; }
-        .triangle {
-            width: 0; height: 0;
-            border-left: 60px solid transparent; border-right: 60px solid transparent; border-bottom: 104px solid #d32f2f;
-            animation: jump 0.6s ease-in-out 3;
+        /* =========================================
+           1. 施柏謙影音：流體啟動系統 (5秒開場)
+           ========================================= */
+        #splash {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s ease-out;
         }
-        @keyframes jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-60px); } }
+        
+        /* 幾何變形核心 */
+        .morph-shape {
+            background: linear-gradient(90deg, #ff4500, #ff8c00, #4169e1);
+            background-size: 200% 200%;
+            animation: 
+                morph-logic 4s cubic-bezier(0.4, 0, 0.2, 1) forwards,
+                gradient-sweep 2s linear infinite; /* 反光滾動感 */
+        }
 
-        /* 2. 主系統與搜尋列 */
-        #app { display: none; padding: 20px; max-width: 1600px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 30px; }
-        header h1 { color: #222; margin: 0; letter-spacing: 2px; }
-        .search-bar { text-align: center; margin-bottom: 30px; }
-        .search-bar input { padding: 12px 24px; width: 80%; max-width: 500px; border-radius: 30px; border: 1px solid #ccc; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        @keyframes morph-logic {
+            /* 0-1.5s: 三角形高速旋轉 */
+            0% { width: 80px; height: 80px; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); transform: rotate(0deg); }
+            30% { width: 80px; height: 80px; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); transform: rotate(1080deg); }
+            
+            /* 1.5-2.5s: 轉變成圓形並凝聚 */
+            35% { width: 80px; height: 80px; clip-path: circle(50% at 50% 50%); transform: rotate(1080deg); }
+            50% { width: 80px; height: 80px; clip-path: circle(50% at 50% 50%); transform: rotate(1080deg); }
+            
+            /* 2.5-4s: 拉長成線條 */
+            100% { width: 350px; height: 4px; clip-path: none; border-radius: 2px; transform: rotate(1080deg); }
+        }
 
-        /* 3. 響應式網格佈局 */
-        .video-container { display: grid; gap: 20px; }
-        /* 手機版預設：1 行 1 欄 */
-        grid-template-columns: 1fr; 
-        /* 電腦版：1 行 5 欄 */
+        /* 品牌字體浮現 */
+        .brand-text {
+            position: absolute; margin-top: -30px; font-size: 28px; letter-spacing: 8px; font-weight: bold;
+            background: linear-gradient(90deg, #fff, #aaa); -webkit-background-clip: text; color: transparent;
+            opacity: 0; animation: text-appear 1s ease-out 3.5s forwards;
+        }
+
+        @keyframes text-appear { to { opacity: 1; margin-top: -40px; } }
+        @keyframes gradient-sweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+
+        /* =========================================
+           2. 系統主畫面與網格佈局
+           ========================================= */
+        #app { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin: 20px 0 40px 0; }
+        .search-bar { text-align: center; margin-bottom: 40px; }
+        .search-bar input { padding: 15px 25px; width: 80%; max-width: 600px; border-radius: 50px; border: none; background: #222; color: #fff; font-size: 16px; outline: none; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        
+        .video-container { display: grid; gap: 25px; grid-template-columns: 1fr; }
         @media (min-width: 1024px) { .video-container { grid-template-columns: repeat(5, 1fr); } }
 
-        /* 4. 影片卡片與預覽縮圖 */
-        .video-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s; }
-        .video-card:hover { transform: translateY(-5px); }
-        .thumbnail { width: 100%; aspect-ratio: 16/9; background-color: #000; object-fit: cover; display: block; }
+        .video-card { background: #1a1a1a; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; position: relative; }
+        .video-card:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .thumbnail { width: 100%; aspect-ratio: 16/9; object-fit: cover; background: #000; }
         .video-info { padding: 15px; }
-        .video-title { margin: 0 0 8px 0; font-size: 16px; color: #111; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .video-date { margin: 0; font-size: 13px; color: #888; }
-
-        /* 5. 播放器容器與跟隨浮水印 */
-        #player-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 10000; justify-content: center; align-items: center; }
-        .player-wrapper { position: relative; width: 90%; max-width: 1000px; background: #000; border-radius: 8px; overflow: hidden; }
-        .close-btn { position: absolute; top: 10px; right: 15px; color: #fff; font-size: 30px; cursor: pointer; z-index: 101; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .video-title { margin: 0 0 10px 0; font-size: 15px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #eee; }
         
-        /* 浮水印設定 (永遠疊加在影片畫面上) */
-        .watermark { position: absolute; bottom: 20px; right: 20px; color: rgba(255,255,255,0.5); font-size: 20px; font-weight: bold; letter-spacing: 2px; pointer-events: none; z-index: 100; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+        /* 影片卡片上的自訂播放按鈕 (彩色流動光暈) */
+        .card-play-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 50px; height: 50px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: all 0.3s ease;
+        }
+        .card-play-btn::after {
+            content: ''; width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 15px solid #111; margin-left: 5px;
+        }
+        .video-card:hover .card-play-btn {
+            opacity: 1;
+            background: linear-gradient(90deg, #ff4500, #ff8c00, #4169e1);
+            background-size: 200% 200%;
+            animation: gradient-sweep 1.5s linear infinite; /* 滑過時產生滾動色彩 */
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+        }
 
-        /* 6. 頁尾版權 */
-        footer { text-align: center; margin-top: 60px; padding: 20px; color: #999; font-size: 14px; }
+        /* =========================================
+           3. 播放器模態框與防盜浮水印
+           ========================================= */
+        #player-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.98); z-index: 10000; justify-content: center; align-items: center; }
+        .player-wrapper { position: relative; width: 95%; max-width: 1100px; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .close-btn { position: absolute; top: -40px; right: 0; color: #fff; font-size: 35px; cursor: pointer; z-index: 101; }
+        
+        /* 角落跟隨浮水印 */
+        .watermark { position: absolute; bottom: 60px; right: 20px; color: rgba(255,255,255,0.4); font-size: 16px; font-weight: bold; letter-spacing: 2px; pointer-events: none; z-index: 99; text-shadow: 1px 1px 2px rgba(0,0,0,0.9); }
+        
+        /* 覆寫 Plyr 播放器主題色為品牌橘紅 */
+        :root { --plyr-color-main: #ff4500; }
+        footer { text-align: center; margin-top: 50px; padding: 20px; color: #666; font-size: 13px; }
     </style>
 </head>
 <body>
-    <div id="splash"><div class="triangle"></div></div>
+
+    <div id="splash">
+        <div class="brand-text">施柏謙影音</div>
+        <div class="morph-shape"></div>
+    </div>
 
     <div id="app">
-        <header><h1>施柏謙影音</h1></header>
-        
+        <header><h2>施柏謙影音系統</h2></header>
         <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="在雲端硬碟中搜尋影片..." onkeyup="filterVideos()">
+            <input type="text" id="searchInput" placeholder="搜尋影片名稱..." onkeyup="filterVideos()">
         </div>
-
         <div class="video-container" id="videoGrid"></div>
-
         <footer><p id="copyright"></p></footer>
     </div>
 
     <div id="player-modal">
         <div class="player-wrapper">
-            <span class="close-btn" onclick="closePlayer()">×</span>
-            <iframe id="video-iframe" width="100%" style="aspect-ratio: 16/9; border:none;" allowfullscreen></iframe>
+            <div style="position: relative;">
+                <span class="close-btn" onclick="closePlayer()">×</span>
+            </div>
+            <video id="plyr-player" playsinline controls style="width: 100%;"></video>
             <div class="watermark">施柏謙影音</div>
         </div>
     </div>
 
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
     <script>
-        // ★★★ 請將引號內的網址替換為你部署的 GAS 網址 ★★★
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx2mLmcPRr9NaYjJAWsQbgsgJU1aObCThmINdNZue8Hptp88eeUbr7ht80-P-vD45uP/exec';
-        let allVideosData = []; // 存放從雲端拉取的影片資料
+        // ★★★ 請替換為你的 GAS 網址 ★★★
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbykALIrxA3whXXm_2nftd_Y7kUAgJDOSoUCxsAvlRSqClCyzUj56x6KLSYMqYEK7Rf-/exec';
+        
+        let allVideosData = [];
+        let playerInstance;
 
         window.onload = () => {
-            // 動態產生版權年份
-            const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有`;
+            // 動態年份版權 (會自動抓取 2026 年)
+            document.getElementById('copyright').innerText = `© 2025 - ${new Date().getFullYear()} 施柏謙 版權所有`;
 
-            // 控制開場動畫：等待跳動動畫結束後淡出
+            // 5秒開場動畫邏輯
             setTimeout(() => {
                 const splash = document.getElementById('splash');
                 splash.style.opacity = '0';
@@ -92,39 +149,41 @@
                     splash.style.display = 'none';
                     document.getElementById('app').style.display = 'block';
                 }, 500);
-            }, 1800); // 配合 CSS 跳動 3 次的時間
+            }, 5000); // 確保開場停留完整的 5 秒
 
-            // 啟動資料擷取
+            // 初始化 Plyr 播放器
+            playerInstance = new Plyr('#plyr-player', {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                keyboard: { focused: false, global: false } // 停用快捷鍵防盜
+            });
+
+            // 啟動資料擷取與 5 秒輪詢機制
             fetchVideos();
-            
-            // 設定每 5 秒自動搜尋一次雲端硬碟更新
             setInterval(fetchVideos, 5000);
         };
 
-        // 防護設定：禁用右鍵與開發者工具快捷鍵 (防止輕易查看源碼或下載)
+        // 防護設定：禁用右鍵與開發者工具快捷鍵
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
-            if (e.key === 'F12' || (e.ctrlKey && ['s', 'u', 'c'].includes(e.key.toLowerCase()))) {
-                e.preventDefault();
-            }
+            if (e.key === 'F12' || (e.ctrlKey && ['s', 'u', 'c'].includes(e.key.toLowerCase()))) e.preventDefault();
         });
 
-        // 去後端抓取資料
+        // 拉取雲端資料
         async function fetchVideos() {
             if(!GAS_URL.startsWith('http')) return; 
             try {
                 const res = await fetch(GAS_URL);
                 const data = await res.json();
                 
-                // 比對資料，只有當雲端硬碟真的有新增或改名時，才重新渲染畫面
+                // 若雲端有更新才重新渲染
                 if(JSON.stringify(data) !== JSON.stringify(allVideosData)) {
                     allVideosData = data;
                     filterVideos();
                 }
-            } catch(err) { console.error("同步失敗，請檢查網址或權限", err); }
+            } catch(err) { console.log("等待同步中..."); }
         }
 
-        // 關鍵字搜尋與渲染影片卡片
+        // 搜尋與渲染卡片
         function filterVideos() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const grid = document.getElementById('videoGrid');
@@ -135,37 +194,42 @@
             filtered.forEach(video => {
                 const card = document.createElement('div');
                 card.className = 'video-card';
-                card.onclick = () => openPlayer(video.id); // 點擊開啟播放器
+                card.onclick = () => openPlayer(video.id);
                 
-                // 產生預覽縮圖
                 const thumbSrc = video.thumbnail ? video.thumbnail : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
                 card.innerHTML = `
-                    <img src="${thumbSrc}" class="thumbnail" alt="影片預覽圖" loading="lazy">
+                    <div style="position: relative;">
+                        <img src="${thumbSrc}" class="thumbnail" alt="預覽圖" loading="lazy">
+                        <div class="card-play-btn"></div> </div>
                     <div class="video-info">
                         <h3 class="video-title">${video.name}</h3>
-                        <p class="video-date">上傳日期: ${video.date}</p>
+                        <p style="margin:0; font-size: 12px; color: #888;">${video.date}</p>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // 開啟播放器與浮水印疊加
+        // 啟動自訂播放器 (將 Google Drive 檔案強制轉為串流直連)
         function openPlayer(fileId) {
             const modal = document.getElementById('player-modal');
-            const iframe = document.getElementById('video-iframe');
+            // 使用 Google Drive 直連下載參數，餵給自訂播放器
+            const streamUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
             
-            // 將雲端硬碟的預覽連結放入 iframe，外面罩著你的「施柏謙影音」浮水印
-            iframe.src = `https://drive.google.com/file/d/${fileId}/preview`;
+            playerInstance.source = {
+                type: 'video',
+                sources: [{ src: streamUrl, type: 'video/mp4' }]
+            };
+            
             modal.style.display = 'flex';
+            playerInstance.play(); // 自動播放
         }
 
         // 關閉播放器
         function closePlayer() {
             const modal = document.getElementById('player-modal');
-            const iframe = document.getElementById('video-iframe');
-            iframe.src = ''; // 清空 src 以停止背景繼續播放
+            playerInstance.stop(); // 停止播放
             modal.style.display = 'none';
         }
     </script>
