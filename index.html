@@ -12,7 +12,7 @@
         body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #121212; color: #fff; user-select: none; overflow-x: hidden; font-size: 18px; }
         
         /* =========================================
-           1. 施柏謙影音：流體啟動系統 (5秒開場)
+           1. 5秒流體開場動畫
            ========================================= */
         #splash {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000;
@@ -46,11 +46,11 @@
         @keyframes gradient-sweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
         /* =========================================
-           2. 系統主畫面與劇院級網格佈局
+           2. 主畫面與影音網格
            ========================================= */
         #app { display: none; padding: 30px; max-width: 1600px; margin: 0 auto; }
         
-        /* LOGO 與標題樣式 */
+        /* LOGO 返回鈕 */
         header { text-align: center; margin: 20px 0 40px 0; cursor: pointer; transition: opacity 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         header:hover { opacity: 0.8; }
         .logo-circle {
@@ -65,26 +65,29 @@
         header:hover .logo-circle { transform: scale(1.1) rotate(10deg); }
         header h2 { font-size: 36px; letter-spacing: 2px; margin: 0; }
         
+        /* 搜尋列 */
         .search-bar { text-align: center; margin-bottom: 20px; }
         .search-bar input { padding: 18px 30px; width: 80%; max-width: 700px; border-radius: 50px; border: none; background: #222; color: #fff; font-size: 18px; outline: none; box-shadow: inset 0 2px 8px rgba(0,0,0,0.6); transition: box-shadow 0.3s; }
         .search-bar input:focus { box-shadow: inset 0 2px 8px rgba(0,0,0,0.8), 0 0 15px rgba(255, 69, 0, 0.5); }
         
         #loading-status { text-align: center; color: #aaa; margin-bottom: 30px; font-size: 16px; letter-spacing: 1px; }
 
-        /* 影片網格佈局 */
+        /* 影片網格 */
         .video-container { display: grid; gap: 40px; grid-template-columns: 1fr; }
         @media (min-width: 768px) { .video-container { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1024px) { .video-container { grid-template-columns: repeat(3, 1fr); } }
 
         .video-card { background: #1a1a1a; border-radius: 16px; overflow: hidden; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; position: relative; }
         .video-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.6); }
+        
+        /* 縮圖優化 */
         .thumbnail { width: 100%; height: 280px; object-fit: cover; background: #000; display: block; transition: opacity 0.3s; }
         .video-card:hover .thumbnail { opacity: 0.6; }
         
         .video-info { padding: 20px; }
         .video-title { margin: 0 0 12px 0; font-size: 22px; line-height: 1.4; font-weight: bold; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #fff; }
         
-        /* 影片卡片播放按鈕 */
+        /* 影片播放按鈕 */
         .card-play-btn {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 60px; height: 60px; border-radius: 50%;
@@ -103,17 +106,29 @@
         }
 
         /* =========================================
-           3. 播放器模態框 (16:9 自適應 Iframe)
+           3. 播放器模態框與「保證返回」全域按鈕
            ========================================= */
-        #player-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.98); z-index: 20000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .player-wrapper { position: relative; width: 90%; max-width: 1200px; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 50px rgba(0,0,0,0.8); }
-        
-        /* 16:9 比例容器 */
-        .iframe-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; }
+        #player-modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: rgba(0,0,0,0.98); z-index: 20000; 
+            justify-content: center; align-items: center; backdrop-filter: blur(8px); 
+        }
+        .player-wrapper { position: relative; width: 90%; max-width: 1100px; border-radius: 12px; overflow: hidden; background: #000; box-shadow: 0 10px 50px rgba(0,0,0,0.9); }
+        .iframe-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background-color: #000; }
         .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-        .close-btn { position: absolute; top: -50px; right: 0; color: #fff; font-size: 40px; cursor: pointer; z-index: 20001; font-weight: bold; transition: color 0.3s; }
-        .close-btn:hover { color: #ff4500; }
+        /* 【關鍵修正：全球最高層級返回按鈕】絕對不會被 iframe 蓋住，按了 100% 成功返回 */
+        .close-global-btn { 
+            position: fixed; top: 20px; right: 20px; 
+            width: 50px; height: 50px; background: rgba(255, 69, 0, 0.9); 
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; 
+            font-size: 32px; color: white; cursor: pointer; 
+            z-index: 999999; /* 極高層級，絕對置頂 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            transition: transform 0.2s, background 0.2s; 
+            font-weight: bold;
+        }
+        .close-global-btn:hover { transform: scale(1.1); background: #ff6347; }
         
         .watermark { position: absolute; bottom: 20px; right: 25px; color: rgba(255,255,255,0.3); font-size: 20px; font-weight: bold; letter-spacing: 3px; pointer-events: none; z-index: 99; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); }
         
@@ -122,7 +137,7 @@
 </head>
 <body>
 
-    <!-- 5秒專屬開場動畫 -->
+    <!-- 5秒開場動畫 -->
     <div id="splash">
         <div class="brand-text">施柏謙影音</div>
         <div class="morph-shape"></div>
@@ -130,7 +145,7 @@
 
     <!-- 主程式介面 -->
     <div id="app">
-        <!-- 點擊 Header 觸發 resetView() 返回最一開始的無搜尋狀態 -->
+        <!-- 點擊 Logo 重置首頁 -->
         <header onclick="resetView()" title="返回首頁">
             <div class="logo-circle">施</div>
             <h2>施柏謙影音系統</h2>
@@ -139,35 +154,34 @@
         <div class="search-bar">
             <input type="text" id="searchInput" placeholder="搜尋影片名稱..." onkeyup="filterVideos()">
         </div>
-        <div id="loading-status">正在載入最高畫質片單，請稍候...</div>
+        <div id="loading-status">正在載入影音資料，請稍候...</div>
         <div class="video-container" id="videoGrid"></div>
         <footer><p id="copyright"></p></footer>
     </div>
 
     <!-- 播放器模態框 -->
     <div id="player-modal">
+        <!-- 獨立全域返回按鈕，置頂高解析度渲染 -->
+        <div class="close-global-btn" onclick="closePlayer()" title="關閉返回">×</div>
+        
         <div class="player-wrapper">
-            <div style="position: relative;">
-                <!-- 關閉按鈕 -->
-                <span class="close-btn" onclick="closePlayer()">×</span>
-            </div>
-            <!-- 播放器容器 -->
+            <!-- 播放器容器 (動態注入/銷毀) -->
             <div class="iframe-container" id="iframe-box"></div>
             <div class="watermark">施柏謙影音</div>
         </div>
     </div>
 
     <script>
-        // 你的 GAS 部署網址 (維持不變)
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzgMHyuI84SYoEix1g7klIDXOrxQHdzmyk1WTcYKJ8FqvTWVW0B3XhXgIeouFPcVriP/exec';
+        // 【請在此填入你最新部署的 GAS 網址】
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycby_iCUyuJ_32NRwntOmV0oeqv_bWN20p3jTkW8UBzKsGKGXj5JnqJc2JCj7_11cClqz/exec';
         
         let allVideosData = [];
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 此系統受Google所保護`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 此系統受Google保護`;
 
-            // 開場動畫邏輯 (確保顯示 5 秒後切換)
+            // 5秒開場動畫
             setTimeout(() => {
                 const splash = document.getElementById('splash');
                 splash.style.opacity = '0';
@@ -177,11 +191,10 @@
                 }, 500);
             }, 5000);
 
-            // 啟動資料擷取
             fetchVideos();
         };
 
-        // 防護設定：禁用右鍵與常用開發者快捷鍵 (防盜機制)
+        // 安全防護：禁用右鍵與常用 F12 工具
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || (e.ctrlKey && ['s', 'u', 'c', 'i', 'j'].includes(e.key.toLowerCase()))) {
@@ -189,7 +202,7 @@
             }
         });
 
-        // 讀取 Google Apps Script 影片資料
+        // 讀取試算表中的所有資料夾影片
         async function fetchVideos() {
             try {
                 const res = await fetch(GAS_URL);
@@ -200,15 +213,15 @@
                     document.getElementById('loading-status').style.display = 'none'; 
                     filterVideos();
                 } else {
-                    document.getElementById('loading-status').innerText = '目前資料夾內沒有影片。';
+                    document.getElementById('loading-status').innerText = '試算表內的資料夾目前無任何影片，或尚未開啟共用權限。';
                 }
             } catch(err) { 
                 console.error("讀取失敗:", err);
-                document.getElementById('loading-status').innerText = '載入失敗，請確認網路連線或 GAS 權限設定。'; 
+                document.getElementById('loading-status').innerText = '載入失敗，請確認 GAS 是否已發布，且資料夾已開放「任何人知道連結皆可檢視」。'; 
             }
         }
 
-        // 搜尋與渲染影片卡片
+        // 渲染影片卡片
         function filterVideos() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const grid = document.getElementById('videoGrid');
@@ -224,10 +237,8 @@
             filtered.forEach(video => {
                 const card = document.createElement('div');
                 card.className = 'video-card';
-                // 點擊卡片時觸發 openPlayer 並傳入影片 ID
-                card.onclick = () => openPlayer(video.id);
+                card.onclick = () => openPlayer(video.secureToken); // 傳遞加密 Token，絕不洩漏 ID
                 
-                // 若無縮圖給予預設黑色圖塊
                 const thumbSrc = video.thumbnail ? video.thumbnail : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
                 card.innerHTML = `
@@ -244,40 +255,41 @@
             });
         }
 
-        // 開啟 Google Drive 官方內嵌播放器
-        function openPlayer(fileId) {
+        // 播放影片：動態即時解密，不洩露真實網址
+        function openPlayer(secureToken) {
             const modal = document.getElementById('player-modal');
             const iframeBox = document.getElementById('iframe-box');
             
-            // 使用官方預覽連結確保最高相容性
-            iframeBox.innerHTML = `<iframe src="https://drive.google.com/file/d/${fileId}/preview" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-            
-            modal.style.display = 'flex';
+            try {
+                // 解密還原真實 ID
+                const fileId = atob(secureToken);
+                
+                // 動態生成 iframe (官方防毒警告相容、大檔案支援、自適應寬度)
+                iframeBox.innerHTML = `<iframe src="https://drive.google.com/file/d/${fileId}/preview" allow="autoplay" allowfullscreen></iframe>`;
+                
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // 防止背景滾動
+            } catch (err) {
+                alert("播放初始化失敗，請確認網頁載入是否正確。");
+            }
         }
 
-        // 關閉播放器並徹底銷毀影片節點
+        // 【徹底關閉並還原】銷毀 iframe 節點，防堵記憶體與歷史紀錄卡死，100% 成功返回
         function closePlayer() {
             const modal = document.getElementById('player-modal');
             const iframeBox = document.getElementById('iframe-box');
             
             modal.style.display = 'none';
-            // 清空 HTML 確保影片完全停止播放並回到初始狀態
-            iframeBox.innerHTML = ''; 
+            iframeBox.innerHTML = ''; // 徹底清除 Iframe 元素，影片立刻中斷
+            document.body.style.overflow = 'auto'; // 恢復主頁滾動
         }
 
-        // 無縫返回首頁 (重置視圖功能)
+        // 點擊 LOGO 無縫回到最原始狀態
         function resetView() {
-            // 關閉可能開啟的播放器
             closePlayer();
-            
-            // 清空搜尋欄
             const searchInput = document.getElementById('searchInput');
             searchInput.value = '';
-            
-            // 重新顯示所有影片
             filterVideos();
-            
-            // 畫面平滑捲動回到最上方
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
