@@ -50,7 +50,7 @@
         @keyframes text-appear { to { opacity: 1; margin-top: -45px; } }
         @keyframes gradient-sweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
-        /* 左上角按鈕 */
+        /* 左上角按鈕 (電腦版懸浮) */
         .top-left-logo {
             position: fixed; 
             top: 20px; 
@@ -85,7 +85,6 @@
 
         /* 影片清單網格 */
         .main-layout { display: flex; flex-direction: column; gap: 25px; width: 100%; }
-        /* 確保父容器佔滿寬度，比例才不會失效 */
         .left-column { width: 100%; display: block; }
         .right-column { width: 100%; display: block; }
 
@@ -105,6 +104,7 @@
 
         .video-stage { 
             position: relative; 
+            display: block; /* 確保盒模型生效 */
             width: 100%; 
             height: 0;
             padding-bottom: 56.25%; /* 完美的 16:9 */
@@ -124,15 +124,15 @@
             z-index: 1; 
         }
         
-        /* 🛡️ 固定高度防跳出蓋板 */
+        /* 🛡️ 暴力加高防跳出蓋板 */
         .video-secure-bar { 
             position: absolute; 
             top: 0; 
             left: 0; 
             width: 100%; 
-            /* 絕對不能用百分比！固定 65px 才能精準蓋掉 Google Drive 右上角的按鈕 */
-            height: 65px; 
-            z-index: 10; 
+            /* 提高到 90px，徹底蓋住所有高解析度手機的按鈕 */
+            height: 90px; 
+            z-index: 999; /* 超高層級，防阻一切點擊 */
             background: transparent; 
             pointer-events: auto; 
         }
@@ -146,20 +146,28 @@
         #defense-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; color: red; z-index: 999999; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; }
 
         /* =========================================
-           📱 手機版專屬優化
+           📱 手機版專屬暴力優化 (終極不重疊方案)
            ========================================= */
         @media (max-width: 768px) {
+            /* 徹底拔除懸浮定位，讓它變成普通文件流的一部份 */
             .top-left-logo {
-                position: absolute;
-                top: 15px;
-                left: 15px;
+                position: relative; /* 改為相對定位 */
+                top: 0;
+                left: 0;
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                padding-top: 20px;
+                margin-bottom: -10px; /* 微調與下方標題的距離 */
+            }
+            .logo-color-bar {
+                margin: 0 auto; /* 強制按鈕置中 */
             }
             #app {
-                /* 強制把內容往下推，確保左上角按鈕不會蓋到影片 */
-                padding-top: 65px; 
+                padding-top: 20px; /* 移除過多的上方空白 */
             }
             header {
-                margin-top: 20px; 
+                margin-top: 10px; 
             }
             .playing-title {
                 font-size: 16px;
