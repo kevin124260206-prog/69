@@ -2,8 +2,8 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>施柏謙影音系統 - 核心安全防禦版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+    <title>施柏謙影音系統</title>
     
     <style>
         /* =========================================
@@ -53,12 +53,12 @@
         @keyframes gradient-sweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
         /* =========================================
-           2. 左上角專屬「施柏謙電影」彩色底按鈕 (加大且發光)
+           2. 左上角專屬「施柏謙電影」按鈕（優化手機版定位避免遮擋）
            ========================================= */
         .top-left-logo {
             position: fixed; 
-            top: 25px; 
-            left: 25px; 
+            top: 20px; 
+            left: 20px; 
             cursor: pointer; 
             z-index: 15000;
             display: inline-block;
@@ -66,37 +66,35 @@
             text-decoration: none;
         }
         
-        /* 亮橘紅彩色漸層大按鈕 */
         .logo-color-bar { 
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 160px; 
-            height: 38px; 
+            width: 140px; 
+            height: 34px; 
             background: linear-gradient(90deg, #ff4500, #ff8c00, #ff0000); 
-            border-radius: 19px; 
+            border-radius: 17px; 
             box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
             transition: all 0.3s;
         }
 
-        /* 橘紅底上面的「施柏謙電影」字體 */
         .logo-text {
             color: #ffffff;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 900;
             letter-spacing: 1.5px;
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
 
         .top-left-logo:hover .logo-color-bar { 
-            transform: scale(1.08); 
+            transform: scale(1.05); 
             box-shadow: 0 0 25px rgba(255, 140, 0, 0.9);
         }
 
         /* =========================================
-           3. 首頁佈局與自動消失控制
+           3. 首頁佈局與自動隱藏
            ========================================= */
-        #app { padding: 40px 20px; max-width: 1000px; margin: 0 auto; }
+        #app { padding: 40px 15px; max-width: 1000px; margin: 0 auto; }
         
         header { 
             text-align: center; 
@@ -106,18 +104,18 @@
             max-height: 100px;
             overflow: hidden;
         }
-        header h1 { font-size: 32px; letter-spacing: 3px; margin: 0; color: #fff; font-weight: bold; }
+        header h1 { font-size: 28px; letter-spacing: 3px; margin: 0; color: #fff; font-weight: bold; }
         
         .search-bar { 
             text-align: center; 
-            margin-bottom: 40px; 
+            margin-bottom: 30px; 
             transition: all 0.4s ease-in-out;
             opacity: 1;
             max-height: 100px;
             overflow: hidden;
         }
         .search-bar input { 
-            padding: 14px 24px; width: 85%; max-width: 550px; border-radius: 30px; border: none; 
+            padding: 12px 20px; width: 85%; max-width: 500px; border-radius: 30px; border: none; 
             background: #1e1e1e; color: #fff; font-size: 15px; outline: none; 
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); transition: all 0.3s; text-align: center;
         }
@@ -125,7 +123,7 @@
         
         #loading-status { text-align: center; color: #888; margin-bottom: 30px; font-size: 15px; }
 
-        /* 🎬 劇院模式觸發 */
+        /* 🎬 劇院播放模式 */
         body.playing-mode header {
             opacity: 0;
             max-height: 0;
@@ -142,7 +140,7 @@
         }
 
         /* =========================================
-           4. 影片清單與自適應流動版面 (推薦影片一律排在下方)
+           4. 影片清單與自適應網格
            ========================================= */
         .main-layout { 
             display: flex; 
@@ -151,11 +149,10 @@
             width: 100%;
         }
 
-        /* 影片清單網格 */
         .video-grid { 
             display: grid; 
-            gap: 20px; 
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            gap: 15px; 
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
             width: 100%;
         }
 
@@ -173,23 +170,27 @@
         .video-date { margin: 0; font-size: 12px; color: #777; }
         
         /* =========================================
-           5. 📱 劇院播放器強大自適應 (修正手機縮放與黑邊)
+           5. 📱 影片播放器 - 完美 16:9 比例盒模型（徹底修復扁平問題）
            ========================================= */
-        #player-area { display: none; margin-bottom: 20px; width: 100%; }
+        #player-area { 
+            display: none; 
+            margin-bottom: 20px; 
+            width: 100%; 
+        }
 
-        /* 使用 padding-bottom 百分比定位，確保在手機、平版和電腦上皆為精準 16:9，不跑版也不會縮在一起 */
+        /* 關鍵修復點：高度設為 0，利用 padding-bottom 56.25% 強制撐出完美的 16:9 */
         .video-stage { 
             position: relative; 
             width: 100%; 
             height: 0;
-            padding-bottom: 56.25%; /* 完美的 16:9 盒模型高度撐開 */
+            padding-bottom: 56.25%; /* 9 / 16 = 0.5625 (完美的 16:9 黃金比例) */
             background: #000; 
             overflow: hidden; 
             border-radius: 12px; 
             border: 1px solid #222;
         }
         
-        /* 讓 Iframe 精準貼齊盒模型 */
+        /* 讓 Iframe 完全填滿 16:9 容器，不會被擠壓扁化 */
         .video-stage iframe { 
             position: absolute; 
             top: 0; 
@@ -200,15 +201,13 @@
             z-index: 1; 
         }
         
-        /* 🛡️ 精準頂部防下載安全保護蓋：
-           在行動端不論螢幕多大，都保持極薄的 50px。
-           既能精準擋住 Google 播放器右上角的外跳功能按鈕，又絕對不會壓到畫面中央的播放/暫停鍵，完美解決手機無法點按影片的問題。 */
+        /* 🛡️ 頂部防下載安全保護蓋（高度改為百分比，不擋中央播放鈕） */
         .video-secure-bar { 
             position: absolute; 
             top: 0; 
             left: 0; 
             width: 100%; 
-            height: 50px; 
+            height: 12%; 
             z-index: 10; 
             background: rgba(0,0,0,0); 
             pointer-events: auto; 
@@ -218,10 +217,10 @@
             padding: 16px 4px; 
             border-bottom: 1px solid #222; 
         }
-        .playing-title { font-size: 20px; font-weight: bold; margin: 0 0 8px 0; color: #fff; line-height: 1.4; }
-        .playing-meta { font-size: 14px; color: #aaa; }
+        .playing-title { font-size: 18px; font-weight: bold; margin: 0 0 8px 0; color: #fff; line-height: 1.4; }
+        .playing-meta { font-size: 13px; color: #aaa; }
         
-        .grid-header { font-size: 18px; font-weight: bold; margin: 15px 0 15px 0; color: #aaa; }
+        .grid-header { font-size: 18px; font-weight: bold; margin: 15px 0; color: #aaa; }
 
         footer { text-align: center; margin-top: 60px; padding: 24px; color: #444; font-size: 13px; border-top: 1px solid #111; }
         
@@ -229,6 +228,24 @@
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
             background: #000; color: red; z-index: 999999; justify-content: center; align-items: center; 
             font-size: 24px; font-weight: bold; 
+        }
+
+        /* =========================================
+           📱 手機版專屬 RWD 調整
+           ========================================= */
+        @media (max-width: 768px) {
+            /* 在手機上，將固定定位的「施柏謙電影」改為相對定位，避免蓋在播放器上面 */
+            .top-left-logo {
+                position: absolute;
+                top: 15px;
+                left: 15px;
+            }
+            header {
+                margin-top: 60px; /* 留出空間給按鈕 */
+            }
+            .playing-title {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -286,7 +303,7 @@
         let isAnimationFinished = false;
 
         // ==========================================
-        // 🛡️ 軍規級防代碼偵測與防右鍵
+        // 🛡️ 防代碼偵測與防右鍵
         // ==========================================
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
@@ -350,9 +367,6 @@
             }
         }
 
-        // ==========================================
-        // 渲染影片清單 (自動排除正在播放的影片)
-        // ==========================================
         function renderGrid(currentPlayingToken = null) {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const grid = document.getElementById('videoGrid');
@@ -390,7 +404,7 @@
         }
 
         // ==========================================
-        // 🔐 配合您 GAS 密碼學的前端雙重解密演算法
+        // 解密演算法
         // ==========================================
         function decryptToken(secureToken) {
             try {
@@ -425,7 +439,7 @@
                 }
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 🌟 使用全新盒裝法容器，在手機上保證 100% 自適應不跑版、縮小！
+                // 使用全新的自適應容器，徹底解決高度縮小問題
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
@@ -442,7 +456,6 @@
                 mainLayout.classList.add('playing');
                 listHeader.innerText = '推薦影片';
                 
-                // 🎬 讓主頁面進入劇院模式（自動隱藏大標題與搜尋框）
                 document.body.classList.add('playing-mode');
 
                 renderGrid(token);
@@ -454,7 +467,7 @@
         }
 
         // ==========================================
-        // 🔙 回首頁功能 (還原網頁狀態)
+        // 🔙 回首頁
         // ==========================================
         function resetView() {
             const mainLayout = document.getElementById('mainLayout');
@@ -462,7 +475,6 @@
             const stageContainer = document.getElementById('stage-container');
             const listHeader = document.getElementById('listHeader');
             
-            // 🎬 退出劇院模式
             document.body.classList.remove('playing-mode');
 
             playerArea.style.display = 'none';
