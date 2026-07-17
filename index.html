@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-    <title>施柏謙影音</title>
+    <title>施柏謙影音系統</title>
     
     <style>
         /* =========================================
-           🚀 核心自動縮放：利用 clamp 讓裁切高度在 56px ~ 64px 之間隨螢幕平滑縮放
+           🚀 核心自動縮放：隨螢幕平滑縮放
            ========================================= */
         :root {
             --drive-header-height: clamp(56px, 1.2vw + 48px, 64px); 
@@ -121,7 +121,7 @@
             -webkit-overflow-scrolling: touch;
         }
         
-        /* 🚀 自動適應：margin-top 與 height 隨變數自動計算，完美拉回控制條 */
+        /* 自動適應：margin-top 與 height 隨變數自動計算，完美拉回控制條 */
         .video-stage iframe { 
             position: absolute; 
             top: 0;
@@ -155,7 +155,7 @@
         #defense-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; color: red; z-index: 999999; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; }
 
         /* =========================================
-           🔄 播放模式下：Logo 乖乖置中不與影片重疊
+           🔄 播放模式下：Logo 置中排版
            ========================================= */
         body.playing-mode .top-left-logo {
             position: relative !important; 
@@ -198,17 +198,30 @@
                 font-size: 16px;
             }
             
-            /* 鎖定播放器的最小高度，防止直向螢幕過窄導致控制介面隱藏 */
+            /* 直向模式下，鎖定播放器的最小高度，防止高度太矮 */
             .video-stage {
                 min-height: 220px !important; 
             }
         }
 
-        /* 🔄 橫螢幕（看電影最常用）自動縮放適應 */
+        /* =========================================
+           🔄 橫螢幕（看電影時）控制條重疊終極修復！
+           ========================================= */
         @media (max-height: 480px) and (orientation: landscape) {
+            /* 1. 播放時隱藏頂部 logo，留出寶貴的垂直寬度 */
+            body.playing-mode .top-left-logo {
+                display: none !important; 
+            }
+            #app {
+                padding: 10px 10px !important;
+            }
+            
+            /* 2. 解除 16:9 比例鎖定，改用高度比例，強制給予 Google 播放器充足的呼吸空間 */
             .video-stage {
-                min-height: auto !important; /* 解除最小高度限制 */
-                max-height: 70vh !important; /* 避免橫螢幕高度不夠切到控制列 */
+                aspect-ratio: auto !important; 
+                height: 80vh !important;       /* 佔滿 80% 的可用螢幕高度 */
+                min-height: 270px !important;   /* 強制設定底線高度，杜絕控制條重疊 bug！ */
+                width: 100% !important;
             }
         }
     </style>
@@ -394,7 +407,6 @@
                 }
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 🛡️ 重新渲染時，iframe 將自動啟用動態流體裁剪機制
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
