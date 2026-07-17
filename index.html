@@ -104,10 +104,10 @@
 
         .video-stage { 
             position: relative; 
-            display: block; /* 確保盒模型生效 */
-            width: 100%; 
-            height: 0;
-            padding-bottom: 56.25%; /* 完美的 16:9 */
+            display: block !important; /* 強制區塊化避免扁平 */
+            width: 100% !important; 
+            height: 0 !important;
+            padding-bottom: 56.25% !important; /* 絕對死鎖 16:9 比例 */
             background: #000; 
             overflow: hidden; 
             border-radius: 12px; 
@@ -118,23 +118,22 @@
             position: absolute; 
             top: 0; 
             left: 0; 
-            width: 100%; 
-            height: 100%; 
+            width: 100% !important; 
+            height: 100% !important; 
             border: none; 
             z-index: 1; 
         }
         
-        /* 🛡️ 暴力加高防跳出蓋板 */
+        /* 🛡️ 實體防禦層 - 直接在 HTML 結構外層做死鎖 */
         .video-secure-bar { 
             position: absolute; 
             top: 0; 
             left: 0; 
             width: 100%; 
-            /* 提高到 90px，徹底蓋住所有高解析度手機的按鈕 */
-            height: 90px; 
-            z-index: 999; /* 超高層級，防阻一切點擊 */
-            background: transparent; 
-            pointer-events: auto; 
+            height: 75px; /* 足夠蓋掉右上角外連圖示 */
+            z-index: 10; /* 高於 Iframe */
+            background: rgba(0,0,0,0.01); /* 微量透明背景，確保攔截點擊事件 */
+            pointer-events: auto !important; 
         }
 
         .playing-info { padding: 16px 4px; border-bottom: 1px solid #222; }
@@ -149,28 +148,32 @@
            📱 手機版專屬暴力優化 (終極不重疊方案)
            ========================================= */
         @media (max-width: 768px) {
-            /* 徹底拔除懸浮定位，讓它變成普通文件流的一部份 */
             .top-left-logo {
-                position: relative; /* 改為相對定位 */
+                position: relative; 
                 top: 0;
                 left: 0;
                 display: flex;
                 justify-content: center;
                 width: 100%;
                 padding-top: 20px;
-                margin-bottom: -10px; /* 微調與下方標題的距離 */
+                margin-bottom: -10px;
             }
             .logo-color-bar {
-                margin: 0 auto; /* 強制按鈕置中 */
+                margin: 0 auto;
             }
             #app {
-                padding-top: 20px; /* 移除過多的上方空白 */
+                padding-top: 20px;
             }
             header {
                 margin-top: 10px; 
             }
             .playing-title {
                 font-size: 16px;
+            }
+            
+            /* 手機版安全蓋板再調高一點，完美覆蓋 Google 網頁版頂部導航 */
+            .video-secure-bar {
+                height: 80px; 
             }
         }
     </style>
@@ -353,11 +356,12 @@
                 }
                 stageContainer.setAttribute('data-playing-token', token);
 
+                // 核心修復：更換成內嵌版 URL 並優化 DOM 順序
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
                         id="videoIframe"
-                        src="https://drive.google.com/file/d/${fileId}/preview" 
+                        src="https://drive.google.com/file/d/${fileId}/preview?usp=drivesdk" 
                         allow="autoplay; fullscreen" 
                         allowfullscreen="true">
                     </iframe>`;
