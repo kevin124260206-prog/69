@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-    <title>施柏謙影音系統</title>
+    <title>施柏謙影音</title>
     
     <style>
         /* =========================================
@@ -106,12 +106,12 @@
             position: relative; 
             display: block !important;
             width: 100% !important; 
-            /* 🚀 現代鎖死 16:9 比例方案，徹底解決手機高度壓縮 Bug */
             aspect-ratio: 16 / 9 !important; 
             background: #000; 
             overflow: hidden; 
             border-radius: 12px; 
             border: 1px solid #222;
+            -webkit-overflow-scrolling: touch; /* 優化 iOS 手機滑動與點擊觸發 */
         }
         
         .video-stage iframe { 
@@ -122,15 +122,16 @@
             height: 100% !important; 
             border: none; 
             z-index: 1; 
+            pointer-events: auto !important;
         }
         
-        /* 🛡️ 頂部安全蓋板 - 徹底阻絕 Google Drive 右上角外連 */
+        /* 🛡️ 安全防禦盾牌 - 僅覆蓋右上角！確保不會大面積擋住觸控導致控制列死機 */
         .video-secure-bar { 
             position: absolute; 
             top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 65px; 
+            right: 0; /* 改為靠右對齊 */
+            width: 80px; /* 電腦版剛好覆蓋右上角外連按鈕 */
+            height: 55px; 
             z-index: 999; 
             background: transparent; 
             pointer-events: auto !important; 
@@ -145,10 +146,27 @@
         #defense-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; color: red; z-index: 999999; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; }
 
         /* =========================================
-           📱 手機版專屬極致優化 (排版絕對不重疊)
+           🔄 播放模式下：不論螢幕大小，Logo 乖乖置中不重疊
+           ========================================= */
+        body.playing-mode .top-left-logo {
+            position: relative !important; 
+            top: 0 !important;
+            left: 0 !important;
+            display: flex !important;
+            justify-content: center !important;
+            width: 100% !important;
+            margin: 10px auto 20px auto !important;
+            z-index: 1000;
+        }
+        body.playing-mode .logo-color-bar {
+            margin: 0 auto !important;
+        }
+
+        /* =========================================
+           📱 手機版專屬極致優化
            ========================================= */
         @media (max-width: 768px) {
-            /* 徹底解除懸浮，改為正常的網頁流排版，並置中 */
+            /* 手機版預設將 Logo 變為正常的網頁流排版，並置中 */
             .top-left-logo {
                 position: relative !important; 
                 top: 0 !important;
@@ -171,8 +189,16 @@
             .playing-title {
                 font-size: 16px;
             }
+            
+            /* 🚀 關鍵修復：手機上鎖定影片播放器的最小高度，防止 Google Drive 因高度過窄而自動閹割/隱藏控制列 */
+            .video-stage {
+                min-height: 230px !important; 
+            }
+            
+            /* 手機版右上角防禦區域微調（因應手機版頂部按鈕尺寸） */
             .video-secure-bar {
-                height: 75px; /* 手機版蓋板稍微拉高，更安全 */
+                width: 70px !important;
+                height: 50px !important;
             }
         }
     </style>
@@ -358,7 +384,7 @@
                 }
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 安全防禦盾牌放置於內嵌 iframe 之上
+                // 🛡️ 安全防禦盾牌僅放置在右上方 (遮擋外連彈出按鈕)
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
