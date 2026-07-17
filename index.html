@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-    <title>施柏謙影音</title>
+    <title>施柏謙影音系統</title>
     
     <style>
         /* =========================================
@@ -158,7 +158,6 @@
            📱 手機版直向 (Portrait) 響應式
            ========================================= */
         @media (max-width: 768px) {
-            /* 在窄螢幕下微調主區塊間距 */
             #app {
                 padding-top: 50px !important; /* 留出頂部空間給左上角的 Logo */
             }
@@ -179,19 +178,19 @@
            🔄 手機版橫向 (Landscape) 終極修復！
            ========================================= */
         @media (max-height: 480px) and (orientation: landscape) {
-            /* 播放時隱藏頂部 logo，為小螢幕橫放釋放垂直空間 */
+            /* 播放時隱藏固定在左上角的 Logo，為影片爭取最大高度 */
             body.playing-mode .top-left-logo {
                 display: none !important; 
             }
             #app {
-                padding: 10px 10px !important;
+                padding: 5px 10px !important;
             }
             
-            /* 解除 16:9 比例鎖定，強制分配足夠的高度，防止 Google 播放器按鈕重疊擠壓 */
+            /* ⚠️ 解鎖高度！直接使用視窗的 95% 高度，確保能完整展開 Google 控制列而不重疊 */
             .video-stage {
                 aspect-ratio: auto !important; 
-                height: 80vh !important;       /* 佔滿 80% 的可用螢幕高度 */
-                min-height: 270px !important;   /* 絕對底線高度，杜絕控制條重疊 bug！ */
+                height: 95vh !important;       /* 拉大可用高度 */
+                min-height: 320px !important;   /* 將安全界線提高至 320px，完全阻止按鈕重擠壓 */
                 width: 100% !important;
             }
         }
@@ -275,7 +274,7 @@
 
         window.onload = () => {
             const currentYear = new Date().getFullYear();
-            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 | 核心軍規防護中`;
+            document.getElementById('copyright').innerText = `© 2025 - ${currentYear} 施柏謙 版權所有 |此網站受`;
 
             setTimeout(() => {
                 isAnimationFinished = true;
