@@ -3,9 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-    <title>施柏謙影音系統</title>
+    <title>施柏謙影音</title>
     
     <style>
+        /* =========================================
+           🚀 核心自動縮放：利用 clamp 讓裁切高度在 56px ~ 64px 之間隨螢幕平滑縮放
+           ========================================= */
+        :root {
+            --drive-header-height: clamp(56px, 1.2vw + 48px, 64px); 
+        }
+
         /* =========================================
            全域與排版樣式
            ========================================= */
@@ -98,7 +105,7 @@
         .video-date { margin: 0; font-size: 12px; color: #777; }
         
         /* =========================================
-           📱 影片播放器核心修復區 (採用現代 aspect-ratio)
+           📱 影片播放器自動縮放核心區
            ========================================= */
         #player-area { display: none; margin-bottom: 20px; width: 100%; }
 
@@ -108,30 +115,32 @@
             width: 100% !important; 
             aspect-ratio: 16 / 9 !important; 
             background: #000; 
-            overflow: hidden; 
+            overflow: hidden; /* 裁剪掉往上移出邊界的 Google 工具列 */
             border-radius: 12px; 
             border: 1px solid #222;
-            -webkit-overflow-scrolling: touch; /* 優化 iOS 手機滑動與點擊觸發 */
+            -webkit-overflow-scrolling: touch;
         }
         
+        /* 🚀 自動適應：margin-top 與 height 隨變數自動計算，完美拉回控制條 */
         .video-stage iframe { 
             position: absolute; 
-            top: 0; 
+            top: 0;
             left: 0; 
             width: 100% !important; 
-            height: 100% !important; 
+            margin-top: calc(var(--drive-header-height) * -1) !important;
+            height: calc(100% + var(--drive-header-height)) !important; 
             border: none; 
             z-index: 1; 
             pointer-events: auto !important;
         }
         
-        /* 🛡️ 安全防禦盾牌 - 僅覆蓋右上角！確保不會大面積擋住觸控導致控制列死機 */
+        /* 🛡️ 右上角防禦盾牌 */
         .video-secure-bar { 
             position: absolute; 
             top: 0; 
-            right: 0; /* 改為靠右對齊 */
-            width: 80px; /* 電腦版剛好覆蓋右上角外連按鈕 */
-            height: 55px; 
+            right: 0;
+            width: 60px; 
+            height: 40px; 
             z-index: 999; 
             background: transparent; 
             pointer-events: auto !important; 
@@ -146,7 +155,7 @@
         #defense-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; color: red; z-index: 999999; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; }
 
         /* =========================================
-           🔄 播放模式下：不論螢幕大小，Logo 乖乖置中不重疊
+           🔄 播放模式下：Logo 乖乖置中不與影片重疊
            ========================================= */
         body.playing-mode .top-left-logo {
             position: relative !important; 
@@ -163,10 +172,9 @@
         }
 
         /* =========================================
-           📱 手機版專屬極致優化
+           📱 手機與平板自動縮放響應式
            ========================================= */
         @media (max-width: 768px) {
-            /* 手機版預設將 Logo 變為正常的網頁流排版，並置中 */
             .top-left-logo {
                 position: relative !important; 
                 top: 0 !important;
@@ -190,15 +198,17 @@
                 font-size: 16px;
             }
             
-            /* 🚀 關鍵修復：手機上鎖定影片播放器的最小高度，防止 Google Drive 因高度過窄而自動閹割/隱藏控制列 */
+            /* 鎖定播放器的最小高度，防止直向螢幕過窄導致控制介面隱藏 */
             .video-stage {
-                min-height: 230px !important; 
+                min-height: 220px !important; 
             }
-            
-            /* 手機版右上角防禦區域微調（因應手機版頂部按鈕尺寸） */
-            .video-secure-bar {
-                width: 70px !important;
-                height: 50px !important;
+        }
+
+        /* 🔄 橫螢幕（看電影最常用）自動縮放適應 */
+        @media (max-height: 480px) and (orientation: landscape) {
+            .video-stage {
+                min-height: auto !important; /* 解除最小高度限制 */
+                max-height: 70vh !important; /* 避免橫螢幕高度不夠切到控制列 */
             }
         }
     </style>
@@ -384,7 +394,7 @@
                 }
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 🛡️ 安全防禦盾牌僅放置在右上方 (遮擋外連彈出按鈕)
+                // 🛡️ 重新渲染時，iframe 將自動啟用動態流體裁剪機制
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
