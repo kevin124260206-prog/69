@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-    <title>施柏謙影音系統</title>
+    <title>施柏謙影音</title>
     
     <style>
         /* =========================================
-           🚀 核心自動縮放：隨螢幕平滑縮放
+           🚀 核心自動縮放：隨螢幕平滑縮放裁切高度
            ========================================= */
         :root {
             --drive-header-height: clamp(56px, 1.2vw + 48px, 64px); 
@@ -57,7 +57,7 @@
         @keyframes text-appear { to { opacity: 1; margin-top: -45px; } }
         @keyframes gradient-sweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
-        /* 左上角按鈕 (電腦版懸浮在左上角) */
+        /* 📌 永遠固定在左上角的 Logo 橘色按鈕 */
         .top-left-logo {
             position: fixed; 
             top: 20px; 
@@ -105,7 +105,7 @@
         .video-date { margin: 0; font-size: 12px; color: #777; }
         
         /* =========================================
-           📱 影片播放器自動縮放核心區
+           📱 影片播放器：動態裁切與修復核心
            ========================================= */
         #player-area { display: none; margin-bottom: 20px; width: 100%; }
 
@@ -115,13 +115,13 @@
             width: 100% !important; 
             aspect-ratio: 16 / 9 !important; 
             background: #000; 
-            overflow: hidden; /* 裁剪掉往上移出邊界的 Google 工具列 */
+            overflow: hidden; /* 裁剪掉往上移出邊界的 Google 頂部工具列 */
             border-radius: 12px; 
             border: 1px solid #222;
             -webkit-overflow-scrolling: touch;
         }
         
-        /* 自動適應：margin-top 與 height 隨變數自動計算，完美拉回控制條 */
+        /* 🚀 完美拉回底部控制條的黑魔法 */
         .video-stage iframe { 
             position: absolute; 
             top: 0;
@@ -134,7 +134,7 @@
             pointer-events: auto !important;
         }
         
-        /* 🛡️ 右上角防禦盾牌 */
+        /* 🛡️ 右上角防禦盾牌 (阻擋極端情況下的外連點擊) */
         .video-secure-bar { 
             position: absolute; 
             top: 0; 
@@ -155,41 +155,12 @@
         #defense-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; color: red; z-index: 999999; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; }
 
         /* =========================================
-           🔄 播放模式下：Logo 置中排版
-           ========================================= */
-        body.playing-mode .top-left-logo {
-            position: relative !important; 
-            top: 0 !important;
-            left: 0 !important;
-            display: flex !important;
-            justify-content: center !important;
-            width: 100% !important;
-            margin: 10px auto 20px auto !important;
-            z-index: 1000;
-        }
-        body.playing-mode .logo-color-bar {
-            margin: 0 auto !important;
-        }
-
-        /* =========================================
-           📱 手機與平板自動縮放響應式
+           📱 手機版直向 (Portrait) 響應式
            ========================================= */
         @media (max-width: 768px) {
-            .top-left-logo {
-                position: relative !important; 
-                top: 0 !important;
-                left: 0 !important;
-                display: flex !important;
-                justify-content: center !important;
-                width: 100% !important;
-                margin: 20px auto 10px auto !important;
-                z-index: 10;
-            }
-            .logo-color-bar {
-                margin: 0 auto !important;
-            }
+            /* 在窄螢幕下微調主區塊間距 */
             #app {
-                padding-top: 10px !important;
+                padding-top: 50px !important; /* 留出頂部空間給左上角的 Logo */
             }
             header {
                 margin-top: 5px !important; 
@@ -198,17 +169,17 @@
                 font-size: 16px;
             }
             
-            /* 直向模式下，鎖定播放器的最小高度，防止高度太矮 */
+            /* 直向模式下鎖定最低高度，防止高度太矮 */
             .video-stage {
                 min-height: 220px !important; 
             }
         }
 
         /* =========================================
-           🔄 橫螢幕（看電影時）控制條重疊終極修復！
+           🔄 手機版橫向 (Landscape) 終極修復！
            ========================================= */
         @media (max-height: 480px) and (orientation: landscape) {
-            /* 1. 播放時隱藏頂部 logo，留出寶貴的垂直寬度 */
+            /* 播放時隱藏頂部 logo，為小螢幕橫放釋放垂直空間 */
             body.playing-mode .top-left-logo {
                 display: none !important; 
             }
@@ -216,11 +187,11 @@
                 padding: 10px 10px !important;
             }
             
-            /* 2. 解除 16:9 比例鎖定，改用高度比例，強制給予 Google 播放器充足的呼吸空間 */
+            /* 解除 16:9 比例鎖定，強制分配足夠的高度，防止 Google 播放器按鈕重疊擠壓 */
             .video-stage {
                 aspect-ratio: auto !important; 
                 height: 80vh !important;       /* 佔滿 80% 的可用螢幕高度 */
-                min-height: 270px !important;   /* 強制設定底線高度，杜絕控制條重疊 bug！ */
+                min-height: 270px !important;   /* 絕對底線高度，杜絕控制條重疊 bug！ */
                 width: 100% !important;
             }
         }
@@ -228,7 +199,7 @@
 </head>
 <body>
 
-    <div id="defense-overlay">系統安全機制已觸發，請關閉開發者工具。</div>
+    <div id="defense-overlay">系統安全機制已觸發，請重新整理網頁。</div>
 
     <div id="splash">
         <div class="brand-text">施柏謙電影</div>
@@ -280,7 +251,7 @@
         let isDataLoaded = false;
         let isAnimationFinished = false;
 
-        // 基礎安全防護
+        // 🛡️ 基礎安全防護
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || 
@@ -291,7 +262,7 @@
             }
         });
 
-        // 反偵錯安全機制
+        // 🛡️ 反偵錯安全機制 (Debugger Loop)
         setInterval(() => {
             const before = new Date().getTime();
             (function() { debugger; })();
@@ -377,6 +348,7 @@
             renderGrid(currentToken);
         }
 
+        // 🔐 解密 Token 還原 File ID
         function decryptToken(secureToken) {
             try {
                 let chars = secureToken.split('');
@@ -407,6 +379,7 @@
                 }
                 stageContainer.setAttribute('data-playing-token', token);
 
+                // 🎬 重新渲染播放器：iframe 將自動啟用 CSS 的動態裁切與修復機制
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
