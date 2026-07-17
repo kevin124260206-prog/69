@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-    <title>施柏謙影音</title>
+    <title>施柏謙影音系統</title>
     
     <style>
         /* =========================================
@@ -50,7 +50,7 @@
         @keyframes text-appear { to { opacity: 1; margin-top: -45px; } }
         @keyframes gradient-sweep { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 
-        /* 左上角按鈕 (電腦版懸浮) */
+        /* 左上角按鈕 (電腦版懸浮在左上角) */
         .top-left-logo {
             position: fixed; 
             top: 20px; 
@@ -72,8 +72,8 @@
         .top-left-logo:hover .logo-color-bar { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 140, 0, 0.9); }
 
         /* 首頁佈局 */
-        #app { padding: 40px 15px; max-width: 1000px; margin: 0 auto; }
-        header { text-align: center; margin: 40px 0 20px 0; transition: all 0.4s; opacity: 1; max-height: 100px; overflow: hidden; }
+        #app { padding: 40px 15px; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; }
+        header { text-align: center; margin: 20px 0; transition: all 0.4s; opacity: 1; max-height: 100px; overflow: hidden; }
         header h1 { font-size: 28px; letter-spacing: 3px; margin: 0; color: #fff; font-weight: bold; }
         
         .search-bar { text-align: center; margin-bottom: 30px; transition: all 0.4s; opacity: 1; max-height: 100px; overflow: hidden; }
@@ -98,16 +98,16 @@
         .video-date { margin: 0; font-size: 12px; color: #777; }
         
         /* =========================================
-           📱 影片播放器核心修復區
+           📱 影片播放器核心修復區 (採用現代 aspect-ratio)
            ========================================= */
         #player-area { display: none; margin-bottom: 20px; width: 100%; }
 
         .video-stage { 
             position: relative; 
-            display: block !important; /* 強制區塊化避免扁平 */
+            display: block !important;
             width: 100% !important; 
-            height: 0 !important;
-            padding-bottom: 56.25% !important; /* 絕對死鎖 16:9 比例 */
+            /* 🚀 現代鎖死 16:9 比例方案，徹底解決手機高度壓縮 Bug */
+            aspect-ratio: 16 / 9 !important; 
             background: #000; 
             overflow: hidden; 
             border-radius: 12px; 
@@ -124,15 +124,15 @@
             z-index: 1; 
         }
         
-        /* 🛡️ 實體防禦層 - 直接在 HTML 結構外層做死鎖 */
+        /* 🛡️ 頂部安全蓋板 - 徹底阻絕 Google Drive 右上角外連 */
         .video-secure-bar { 
             position: absolute; 
             top: 0; 
             left: 0; 
             width: 100%; 
-            height: 75px; /* 足夠蓋掉右上角外連圖示 */
-            z-index: 10; /* 高於 Iframe */
-            background: rgba(0,0,0,0.01); /* 微量透明背景，確保攔截點擊事件 */
+            height: 65px; 
+            z-index: 999; 
+            background: transparent; 
             pointer-events: auto !important; 
         }
 
@@ -145,35 +145,34 @@
         #defense-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; color: red; z-index: 999999; justify-content: center; align-items: center; font-size: 24px; font-weight: bold; }
 
         /* =========================================
-           📱 手機版專屬暴力優化 (終極不重疊方案)
+           📱 手機版專屬極致優化 (排版絕對不重疊)
            ========================================= */
         @media (max-width: 768px) {
+            /* 徹底解除懸浮，改為正常的網頁流排版，並置中 */
             .top-left-logo {
-                position: relative; 
-                top: 0;
-                left: 0;
-                display: flex;
-                justify-content: center;
-                width: 100%;
-                padding-top: 20px;
-                margin-bottom: -10px;
+                position: relative !important; 
+                top: 0 !important;
+                left: 0 !important;
+                display: flex !important;
+                justify-content: center !important;
+                width: 100% !important;
+                margin: 20px auto 10px auto !important;
+                z-index: 10;
             }
             .logo-color-bar {
-                margin: 0 auto;
+                margin: 0 auto !important;
             }
             #app {
-                padding-top: 20px;
+                padding-top: 10px !important;
             }
             header {
-                margin-top: 10px; 
+                margin-top: 5px !important; 
             }
             .playing-title {
                 font-size: 16px;
             }
-            
-            /* 手機版安全蓋板再調高一點，完美覆蓋 Google 網頁版頂部導航 */
             .video-secure-bar {
-                height: 80px; 
+                height: 75px; /* 手機版蓋板稍微拉高，更安全 */
             }
         }
     </style>
@@ -187,13 +186,14 @@
         <div class="morph-shape"></div>
     </div>
 
-    <div class="top-left-logo" onclick="resetView()" title="回到首頁">
-        <div class="logo-color-bar">
-            <span class="logo-text">施柏謙電影</span>
-        </div>
-    </div>
-
     <div id="app">
+        
+        <div class="top-left-logo" onclick="resetView()" title="回到首頁">
+            <div class="logo-color-bar">
+                <span class="logo-text">施柏謙電影</span>
+            </div>
+        </div>
+
         <header id="mainHeader">
             <h1>施柏謙影音系統</h1>
         </header>
@@ -231,6 +231,7 @@
         let isDataLoaded = false;
         let isAnimationFinished = false;
 
+        // 基礎安全防護
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || 
@@ -241,6 +242,7 @@
             }
         });
 
+        // 反偵錯安全機制
         setInterval(() => {
             const before = new Date().getTime();
             (function() { debugger; })();
@@ -356,12 +358,12 @@
                 }
                 stageContainer.setAttribute('data-playing-token', token);
 
-                // 核心修復：更換成內嵌版 URL 並優化 DOM 順序
+                // 安全防禦盾牌放置於內嵌 iframe 之上
                 stageContainer.innerHTML = `
                     <div class="video-secure-bar"></div>
                     <iframe 
                         id="videoIframe"
-                        src="https://drive.google.com/file/d/${fileId}/preview?usp=drivesdk" 
+                        src="https://drive.google.com/file/d/${fileId}/preview" 
                         allow="autoplay; fullscreen" 
                         allowfullscreen="true">
                     </iframe>`;
